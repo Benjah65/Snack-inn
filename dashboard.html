@@ -1,0 +1,541 @@
+<!-- WARNING: Using cdn.tailwindcss.com is not recommended for production. See https://tailwindcss.com/docs/installation for proper setup. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snack Inn | Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Chewy&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-orange: #f97316;
+      --brand-offwhite: #EFEFD0;
+      --brand-dark: #1F2937;
+      --brand-softwhite: #F3F4F6;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--brand-offwhite);
+      color: #111;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.theme-dark {
+      background: var(--brand-dark);
+      color: var(--brand-softwhite);
+    }
+    .logo-font { font-family: 'Chewy', cursive; }
+    /* Sidebar */
+    #sidebar {
+      background: var(--brand-offwhite);
+      color: #111;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.theme-dark #sidebar {
+      background: var(--brand-dark);
+      color: var(--brand-softwhite);
+    }
+    /* Main card */
+    .main-card {
+      background: #fff;
+      color: #111;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.theme-dark .main-card {
+      background: #232d3b;
+      color: var(--brand-softwhite);
+    }
+    /* Inputs */
+    input, select, textarea {
+      background: #fff;
+      color: #111;
+      border-color: #e5e7eb;
+      transition: background 0.3s, color 0.3s, border 0.3s;
+    }
+    body.theme-dark input, body.theme-dark select, body.theme-dark textarea {
+      background: #232d3b;
+      color: var(--brand-softwhite);
+      border-color: #374151;
+    }
+    /* Orange accent */
+    .accent {
+      color: var(--brand-orange) !important;
+    }
+    .bg-accent {
+      background: var(--brand-orange) !important;
+      color: #fff !important;
+    }
+    /* Toast */
+    #toast {
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.12);
+      transition: opacity 0.4s, background 0.4s, color 0.4s;
+      min-width: 200px;
+      max-width: 90vw;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    body.theme-dark #toast {
+      background: #111;
+      color: var(--brand-orange);
+    }
+    body:not(.theme-dark) #toast {
+      background: var(--brand-orange);
+      color: #111;
+    }
+    /* Modal */
+    .modal-bg { background: rgba(0,0,0,0.5); }
+    .modal-content {
+      background: #fff;
+      color: #111;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.theme-dark .modal-content {
+      background: #232d3b;
+      color: var(--brand-softwhite);
+    }
+    /* Order list */
+    .order-details { font-size: 0.95em; }
+    /* Button accent */
+    .btn-accent {
+      background: var(--brand-orange) !important;
+      color: #fff !important;
+      border: none;
+    }
+    .btn-accent:hover {
+      background: #ea580c !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile Sidebar Toggle Button -->
+  <button id="sidebarToggle" class="fixed top-4 left-4 z-50 bg-accent px-4 py-2 rounded-full shadow-lg md:hidden">
+    <i class="fas fa-bars"></i>
+  </button>
+  <div class="min-h-screen md:flex relative">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 shadow-lg p-6 fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out md:flex flex-col justify-between">
+      <div>
+        <div class="flex items-center space-x-3 mb-10">
+          <i class="fas fa-pizza-slice accent text-3xl"></i>
+          <span class="logo-font text-3xl accent">Snack Inn</span>
+        </div>
+        <nav class="space-y-3">
+          <a href="index.html" class="block px-4 py-2 rounded-lg hover:bg-accent/10">Home</a>
+          <a href="#" class="block px-4 py-2 rounded-lg hover:bg-accent/10">Dashboard</a>
+          <a href="#" id="orders-link" class="block px-4 py-2 rounded-lg hover:bg-accent/10">Orders</a>
+          <a href="#" id="settings-link" class="block px-4 py-2 rounded-lg hover:bg-accent/10">Settings</a>
+        </nav>
+      </div>
+      <div>
+        <button id="toggle-theme" class="mb-4 w-full text-sm border px-4 py-2 rounded-full">🌗 Toggle Theme</button>
+        <button id="logout-btn" class="btn-accent px-4 py-2 rounded-full text-sm w-full">Logout</button>
+      </div>
+    </aside>
+    <!-- Backdrop (for mobile sidebar) -->
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden transition-opacity duration-300"></div>
+    <!-- Main -->
+    <main class="flex-1 md:ml-64 p-4 pt-16">
+      <h1 class="text-4xl font-bold accent mb-8 text-center">Your Dashboard</h1>
+      <div class="main-card rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-2xl mx-auto">
+        <!-- Profile Section -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
+          <div class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center accent text-3xl border-4 border-accent">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="text-center sm:text-left">
+            <h2 id="user-name" class="text-xl font-semibold">User Name</h2>
+            <p id="user-email" class="text-gray-600 dark:text-gray-300 text-sm">user@email.com</p>
+            <p id="user-extra" class="text-gray-500 dark:text-gray-400 text-xs mt-1">@username | Location | Phone</p>
+          </div>
+        </div>
+        <!-- Editable Fields -->
+        <div class="space-y-4 mb-8" id="profile-fields">
+          <input id="display-name-input" type="text" placeholder="New Display Name" class="w-full px-4 py-2 rounded border" />
+          <input id="phone-number" type="tel" placeholder="Phone Number" class="w-full px-4 py-2 rounded border" />
+          <input id="user-location" type="text" placeholder="Location / Address" class="w-full px-4 py-2 rounded border" />
+          <input id="username" type="text" placeholder="Username (e.g. @dummy_vibes)" class="w-full px-4 py-2 rounded border" />
+          <select id="language" class="w-full px-4 py-2 rounded border">
+            <option value="">Preferred Language</option>
+            <option value="english">English</option>
+            <option value="swahili">Swahili</option>
+            <option value="korean">Korean</option>
+          </select>
+          <input id="fav-snack" type="text" placeholder="Favorite Snack" class="w-full px-4 py-2 rounded border" />
+          <input id="allergies" type="text" placeholder="Any Allergies?" class="w-full px-4 py-2 rounded border" />
+          <input id="delivery-time" type="text" placeholder="Preferred Delivery Time" class="w-full px-4 py-2 rounded border" />
+          <textarea id="user-notes" class="w-full border p-2 rounded" placeholder="Any special instructions or notes?"></textarea>
+          <button id="update-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Update Profile</button>
+        </div>
+        <!-- Orders -->
+        <div class="mt-4">
+          <h3 class="text-lg font-bold accent mb-3">Order History</h3>
+          <ul id="order-history" class="space-y-3 text-sm">
+            <li class="border rounded-lg p-3">No orders yet...</li>
+          </ul>
+          <div class="mt-4 flex flex-col sm:flex-row gap-4 justify-between">
+            <button id="submit-order" class="btn-accent px-4 py-2 rounded text-sm w-full sm:w-auto">Submit Order</button>
+            <button id="clear-cart" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm w-full sm:w-auto">Clear All</button>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="mt-6">
+          <h3 class="text-lg font-bold accent mb-3">Leave a Review</h3>
+          <textarea id="feedback" placeholder="Type your feedback..." class="w-full p-2 border rounded"></textarea>
+          <button id="submit-feedback" class="btn-accent px-4 py-2 mt-2 rounded w-full text-sm">Submit Review</button>
+        </div>
+        <!-- Actions -->
+        <div class="mt-6 space-y-3">
+          <button id="reset-password" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm w-full">Reset Password</button>
+          <button id="edit-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Edit Profile</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="fixed bottom-5 right-5 px-4 py-3 rounded-lg shadow-lg hidden"></div>
+  <!-- Orders Modal -->
+  <div id="orders-modal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="modal-content rounded-xl shadow-lg p-6 w-full max-w-md relative">
+      <button id="close-orders-modal" class="absolute top-2 right-4 text-xl text-gray-600 hover:text-orange-500">&times;</button>
+      <h2 class="text-2xl font-bold accent mb-4">Orders</h2>
+      <div id="orders-modal-content">Your order history will appear here.</div>
+    </div>
+  </div>
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="modal-content rounded-xl shadow-lg p-6 w-full max-w-md relative">
+      <button id="close-settings-modal" class="absolute top-2 right-4 text-xl text-gray-600 hover:text-orange-500">&times;</button>
+      <h2 class="text-2xl font-bold accent mb-4">Settings</h2>
+      <form id="settings-form" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label for="notif-toggle" class="font-semibold">Notifications</label>
+          <input type="checkbox" id="notif-toggle" class="h-5 w-5 accent rounded border-gray-300 focus:ring-orange-500">
+        </div>
+        <div>
+          <label for="settings-language" class="font-semibold">Language</label>
+          <select id="settings-language" class="w-full px-4 py-2 rounded border">
+            <option value="english">English</option>
+            <option value="swahili">Swahili</option>
+            <option value="korean">Korean</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="settings-theme" class="font-semibold">Theme</label>
+          <select id="settings-theme" class="w-32 px-2 py-1 rounded border">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-accent px-4 py-2 rounded w-full">Save Settings</button>
+      </form>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut,
+      updateProfile,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
+      authDomain: "snackinn-979a8.firebaseapp.com",
+      projectId: "snackinn-979a8",
+      storageBucket: "snackinn-979a8.appspot.com",
+      messagingSenderId: "929490643698",
+      appId: "1:929490643698:web:4d7a87897863c38f883e6b",
+      measurementId: "G-54KKTHQYJQ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // --- Toast ---
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("show");
+      toast.classList.remove("hidden");
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 400);
+      }, 2500);
+    }
+    window.showToast = showToast;
+
+    // --- Theme ---
+    function applyTheme(theme) {
+      if (theme === "dark") {
+        document.body.classList.add("theme-dark");
+      } else {
+        document.body.classList.remove("theme-dark");
+      }
+    }
+    function persistTheme(theme) {
+      localStorage.setItem("theme", theme);
+      applyTheme(theme);
+    }
+    function getSavedTheme() {
+      return localStorage.getItem("theme") || "light";
+    }
+
+    // --- Settings ---
+    function loadSettings(uid) {
+      const settings = JSON.parse(localStorage.getItem(`user_settings_${uid}`)) || {};
+      document.getElementById("notif-toggle").checked = !!settings.notifications;
+      document.getElementById("settings-language").value = settings.language || "english";
+      document.getElementById("settings-theme").value = settings.theme || getSavedTheme();
+    }
+    function saveSettings(uid) {
+      const notifications = document.getElementById("notif-toggle").checked;
+      const language = document.getElementById("settings-language").value;
+      const theme = document.getElementById("settings-theme").value;
+      localStorage.setItem(`user_settings_${uid}`, JSON.stringify({ notifications, language, theme }));
+      persistTheme(theme);
+      showToast("✅ Settings saved!");
+    }
+
+    // --- Profile Info ---
+    function loadProfileInfo(uid) {
+      const info = JSON.parse(localStorage.getItem(`user_profile_info_${uid}`)) || {};
+      document.getElementById("display-name-input").value = info.name || "";
+      document.getElementById("phone-number").value = info.phone || "";
+      document.getElementById("user-location").value = info.location || "";
+      document.getElementById("username").value = info.username || "";
+      document.getElementById("language").value = info.language || "";
+      document.getElementById("fav-snack").value = info.snack || "";
+      document.getElementById("allergies").value = info.allergy || "";
+      document.getElementById("delivery-time").value = info.delivery || "";
+      document.getElementById("user-notes").value = info.notes || "";
+      // Also update display
+      document.getElementById("user-extra").textContent =
+        `${info.username || ""} | ${info.location || ""} | ${info.phone || ""}`;
+      if (info.name) document.getElementById("user-name").textContent = info.name;
+    }
+    function saveProfileInfo(uid) {
+      const info = {
+        name: document.getElementById("display-name-input").value.trim(),
+        phone: document.getElementById("phone-number").value.trim(),
+        location: document.getElementById("user-location").value.trim(),
+        username: document.getElementById("username").value.trim(),
+        language: document.getElementById("language").value.trim(),
+        snack: document.getElementById("fav-snack").value.trim(),
+        allergy: document.getElementById("allergies").value.trim(),
+        delivery: document.getElementById("delivery-time").value.trim(),
+        notes: document.getElementById("user-notes").value.trim()
+      };
+      localStorage.setItem(`user_profile_info_${uid}`, JSON.stringify(info));
+      document.getElementById("user-extra").textContent =
+        `${info.username || ""} | ${info.location || ""} | ${info.phone || ""}`;
+      document.getElementById("user-name").textContent = info.name || "User Name";
+      showToast("✅ Profile updated!");
+    }
+
+    // --- Order History ---
+    function loadOrderHistory(uid) {
+      const orderList = document.getElementById("order-history");
+      if (!orderList) return;
+      let cartData = [];
+      if (uid) {
+        cartData = JSON.parse(localStorage.getItem(`snack_cart_${uid}`)) || [];
+        // Fallback to guest cart if user cart is empty
+        if (!cartData || cartData.length === 0) {
+          cartData = JSON.parse(localStorage.getItem('snack_cart')) || [];
+        }
+      } else {
+        cartData = JSON.parse(localStorage.getItem('snack_cart')) || [];
+      }
+      if (cartData.length > 0) {
+        orderList.innerHTML = "";
+        cartData.forEach((item, index) => {
+          const li = document.createElement("li");
+          li.className = "border rounded-lg p-3";
+          li.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span>Item ${index + 1} - ${item.name}</span>
+              <button class="toggle-details text-sm accent">View</button>
+            </div>
+            <div class="order-details mt-2 hidden">
+              <p>Quantity: ${item.quantity}</p>
+              <p>Price: KSh ${item.price}</p>
+              <p>Total: <span class='accent font-semibold'>KSh ${item.quantity * item.price}</span></p>
+            </div>
+          `;
+          orderList.appendChild(li);
+        });
+      } else {
+        orderList.innerHTML = `<li class="border rounded-lg p-3">No orders yet...</li>`;
+      }
+    }
+
+    // --- DOMContentLoaded ---
+    window.addEventListener("DOMContentLoaded", () => {
+      // Theme on load
+      applyTheme(getSavedTheme());
+
+      // Sidebar mobile toggle
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebarToggle && sidebar && backdrop) {
+        sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('-translate-x-full');
+          backdrop.classList.toggle('hidden');
+        });
+        backdrop.addEventListener('click', () => {
+          sidebar.classList.add('-translate-x-full');
+          backdrop.classList.add('hidden');
+        });
+      }
+
+      // Auth state
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          window.location.href = "index.html";
+          return;
+        }
+        // Profile info
+        document.getElementById("user-name").textContent = user.displayName || "Anonymous";
+        document.getElementById("user-email").textContent = user.email;
+        loadProfileInfo(user.uid);
+        loadSettings(user.uid);
+        // Profile fields open on first load
+        document.getElementById("profile-fields").classList.remove("hidden");
+        // Load order history ONLY after user is confirmed
+        loadOrderHistory(user.uid);
+
+        // Submit Order
+        document.getElementById("submit-order").addEventListener("click", () => {
+          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify([]));
+          loadOrderHistory(user.uid);
+          showToast("✅ Order submitted and cart cleared!");
+        });
+
+        // Clear Cart
+        document.getElementById("clear-cart").addEventListener("click", () => {
+          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify([]));
+          loadOrderHistory(user.uid);
+          showToast("🗑️ Cart cleared!");
+        });
+      });
+
+      // Logout
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        const user = auth.currentUser;
+        if (!user) return showToast("⛔ No user logged in.");
+        signOut(auth)
+          .then(() => {
+            localStorage.removeItem(`snack_cart_${user.uid}`);
+            window.location.href = "index.html";
+          })
+          .catch(() => showToast("❌ Logout failed."));
+      });
+
+      // Theme toggle
+      document.getElementById("toggle-theme").addEventListener("click", () => {
+        const newTheme = document.body.classList.contains("theme-dark") ? "light" : "dark";
+        persistTheme(newTheme);
+        showToast(newTheme === "dark" ? "🌙 Dark mode enabled" : "☀️ Light mode enabled");
+      });
+
+      // Reset Password
+      document.getElementById("reset-password").addEventListener("click", () => {
+        const user = auth.currentUser;
+        if (!user) return showToast("⛔ No user logged in");
+        sendPasswordResetEmail(auth, user.email)
+          .then(() => showToast("✅ Password reset email sent!"))
+          .catch(() => showToast("❌ Failed to send reset email."));
+      });
+
+      // Submit Review
+      document.getElementById("submit-feedback").addEventListener("click", () => {
+        const feedback = document.getElementById("feedback");
+        if (!feedback) return;
+        const value = feedback.value.trim();
+        if (!value) return showToast("Please enter your feedback.");
+        showToast("✅ Thank you for your review!");
+        feedback.value = "";
+      });
+
+      // Update Profile
+      document.getElementById("update-profile").addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) return showToast("⛔ No user logged in");
+        const newName = document.getElementById("display-name-input").value.trim();
+        try {
+          if (newName && newName !== user.displayName) {
+            await updateProfile(user, { displayName: newName });
+          }
+          saveProfileInfo(user.uid);
+        } catch (err) {
+          showToast("❌ Failed to update profile.");
+        }
+      });
+
+      // Edit Profile toggle
+      document.getElementById("edit-profile").addEventListener("click", () => {
+        document.getElementById("profile-fields").classList.toggle("hidden");
+      });
+
+      // Sidebar modal links
+      document.getElementById("orders-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (user) {
+          const cartData = JSON.parse(localStorage.getItem(`snack_cart_${user.uid}`)) || [];
+          let html = "";
+          if (cartData.length === 0) {
+            html = "<p>No orders yet.</p>";
+          } else {
+            html = "<ul class='space-y-2'>";
+            cartData.forEach((item, i) => {
+              html += `<li class='border rounded p-2'>${item.name} x${item.quantity} - KSh ${item.price * item.quantity}</li>`;
+            });
+            html += "</ul>";
+          }
+          document.getElementById("orders-modal-content").innerHTML = html;
+        }
+        document.getElementById("orders-modal").classList.remove("hidden");
+      });
+      document.getElementById("settings-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (user) loadSettings(user.uid);
+        document.getElementById("settings-modal").classList.remove("hidden");
+      });
+      document.getElementById("close-orders-modal").addEventListener("click", () => {
+        document.getElementById("orders-modal").classList.add("hidden");
+      });
+      document.getElementById("close-settings-modal").addEventListener("click", () => {
+        document.getElementById("settings-modal").classList.add("hidden");
+      });
+
+      // Settings form submit
+      document.getElementById("settings-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (user) saveSettings(user.uid);
+      });
+
+      // Order dropdown toggle
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('toggle-details')) {
+          const details = e.target.closest('li').querySelector('.order-details');
+          details.classList.toggle('hidden');
+          e.target.textContent = details.classList.contains('hidden') ? 'View' : 'Hide';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

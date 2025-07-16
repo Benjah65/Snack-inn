@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snack Inn | Checkout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fef9f4;
+    }
+    .error-input {
+      border-color: red;
+    }
+    .error-text {
+      color: red;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body class="text-gray-800">
+
+  <div class="max-w-3xl mx-auto p-6 mt-10 bg-white rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold text-orange-500 mb-6">Checkout</h1>
+
+    <!-- Step 1: Customer Info -->
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">🧑 Your Info</h2>
+      <input id="checkout-name" type="text" placeholder="Full Name" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-name" class="error-text hidden">Full name is required</div>
+
+      <input id="checkout-email" type="email" placeholder="Email Address" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-email" class="error-text hidden">Valid email is required</div>
+
+      <input id="checkout-phone" type="tel" placeholder="Phone Number" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-phone" class="error-text hidden">Phone number is required</div>
+    </div>
+
+    <!-- Step 2: Address -->
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">📍 Delivery Address</h2>
+      <input id="checkout-county" type="text" placeholder="County" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-county" class="error-text hidden">County is required</div>
+
+      <input id="checkout-town" type="text" placeholder="Town/City" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-town" class="error-text hidden">Town/City is required</div>
+
+      <input id="checkout-street" type="text" placeholder="Street Name" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-street" class="error-text hidden">Street name is required</div>
+
+      <input id="checkout-house" type="text" placeholder="House / Apartment / Block" required class="w-full mb-1 px-4 py-2 border rounded" />
+      <div id="error-checkout-house" class="error-text hidden">House/Block info is required</div>
+    </div>
+
+    <!-- M-Pesa -->
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">📲 M-Pesa Payment</h2>
+      <input id="checkout-mpesa" type="text" placeholder="M-Pesa Transaction Code" required class="w-full px-4 py-2 border rounded" />
+      <div id="error-checkout-mpesa" class="error-text hidden">M-Pesa transaction code is required</div>
+      <p class="text-xs text-gray-500 mt-1">Pay to: <span class="text-orange-600 font-bold">0741 194 979</span></p>
+    </div>
+
+    <!-- Step 3: Order Summary -->
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">🛒 Your Order</h2>
+      <ul id="checkout-cart" class="mb-3 space-y-2 text-sm"></ul>
+      
+    </div>
+
+    <!-- Confirm -->
+    <button id="confirm-order" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded text-lg cursor-pointer">
+      Confirm Order
+    </button>
+    <p id="status" class="text-sm text-center mt-3 text-gray-500 hidden">Submitting...</p>
+  </div>
+
+  <!-- ✅ SCRIPT LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
+      authDomain: "snackinn-979a8.firebaseapp.com",
+      projectId: "snackinn-979a8",
+      storageBucket: "snackinn-979a8.appspot.com",
+      messagingSenderId: "929490643698",
+      appId: "1:929490643698:web:4d7a87897863c38f883e6b",
+      measurementId: "G-54KKTHQYJQ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const user = JSON.parse(localStorage.getItem("snack_user"));
+    const uid = user?.uid || null;
+    const cartKey = uid ? `snack_cart_${uid}` : "snack_cart";
+    const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+    const cartList = document.getElementById("checkout-cart");
+    const cartTotal = document.getElementById("checkout-total");
+    const statusEl = document.getElementById("status");
+    const confirmBtn = document.getElementById("confirm-order");
+
+    let total = 0;
+
+    if (cart.length === 0) {
+      cartList.innerHTML = "<li>No items in your order.</li>";
+      cartTotal.textContent = "KSh 0";
+    } else {
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `<div class="flex justify-between"><span>${item.name} × ${item.quantity}</span><span>KSh ${item.price * item.quantity}</span></div>`;
+        total += item.price * item.quantity;
+        cartList.appendChild(li);
+      });
+     
+
+    }
+    // After calculating total
+const deliveryFee = total > 0 ? 200 : 0;
+const tax = Math.round(total * 0.16);
+const grandTotal = total + deliveryFee + tax;
+
+// Append delivery and tax info
+const deliveryRow = document.createElement("div");
+deliveryRow.classList.add("flex", "justify-between");
+deliveryRow.innerHTML = `<span>🚚 Delivery Fee:</span><span>KSh ${deliveryFee}</span>`;
+cartList.appendChild(deliveryRow);
+
+const taxRow = document.createElement("div");
+taxRow.classList.add("flex", "justify-between");
+taxRow.innerHTML = `<span>📄 Tax (16% VAT):</span><span>KSh ${tax}</span>`;
+cartList.appendChild(taxRow);
+
+const totalRow = document.createElement("div");
+totalRow.classList.add("flex", "justify-between", "font-bold", "border-t", "pt-3");
+totalRow.innerHTML = `<span>Total:</span><span id="checkout-total" class="text-green-600">KSh ${grandTotal}</span>`;
+cartList.appendChild(totalRow);
+
+// Store final total
+order.total = grandTotal;
+
+
+    function validateCheckoutForm() {
+      let valid = true;
+      const fields = ["name", "email", "phone", "county", "town", "street", "house", "mpesa"];
+      fields.forEach(field => {
+        const input = document.getElementById(`checkout-${field}`);
+        const error = document.getElementById(`error-checkout-${field}`);
+        if (!input.value.trim()) {
+          input.classList.add("error-input");
+          error.classList.remove("hidden");
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+          valid = false;
+        } else {
+          input.classList.remove("error-input");
+          error.classList.add("hidden");
+        }
+      });
+      return valid;
+    }
+
+    confirmBtn.addEventListener("click", async () => {
+      if (!validateCheckoutForm()) return;
+
+      const order = {
+        uid: user?.uid || "guest",
+        name: document.getElementById("checkout-name").value.trim(),
+        email: document.getElementById("checkout-email").value.trim(),
+        phone: document.getElementById("checkout-phone").value.trim(),
+        mpesaCode: document.getElementById("checkout-mpesa").value.trim(),
+        address: {
+          county: document.getElementById("checkout-county").value.trim(),
+          town: document.getElementById("checkout-town").value.trim(),
+          street: document.getElementById("checkout-street").value.trim(),
+          house: document.getElementById("checkout-house").value.trim()
+        },
+        items: cart,
+        total,
+        createdAt: serverTimestamp()
+      };
+
+      statusEl.classList.remove("hidden");
+
+      try {
+        await addDoc(collection(db, "orders"), order);
+
+        // ✅ EmailJS send
+        emailjs.init("Od9kXsPwKkwFghwue");
+        await emailjs.send("service_u395zvd", "template_gd5clck", {
+          name: order.name,
+          email: order.email,
+          phone: order.phone,
+          total: `KSh ${order.total}`,
+          address: `${order.address.county}, ${order.address.town}, ${order.address.street}, ${order.address.house}`,
+          mpesa: order.mpesaCode
+        });
+
+        localStorage.setItem("snack_last_order", JSON.stringify(order));
+        localStorage.removeItem(cartKey);
+
+        window.location.href = "thankyou.html";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "❌ Failed to submit order.";
+      }
+    });
+  </script>
+</body>
+</html>
+<!-- This is the end of the checkout.html file. -->
+<!-- It contains the checkout form, order summary, and logic to handle form submission and order processing. -->
+<!-- The script initializes Firebase, validates the form, submits the order to Firestore, and sends an email using EmailJS. -->
+<!-- The order details are saved in localStorage for later retrieval on the thank you page. -->
+<!-- The user is redirected to thankyou.html after a successful order submission. -->
+<!-- The form includes error handling and validation to ensure all required fields are filled out correctly

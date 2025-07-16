@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Snack Inn - Shop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+  html {
+    scroll-behavior: smooth;
+  }
+</style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            orange: {
+              500: '#FF5722',
+              600: '#E64A19',
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-gray-50">
+<nav class="bg-white shadow fixed w-full z-50 top-0 left-0">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center relative">
+    <a href="index.html" class="text-orange-500 font-bold text-xl">Snack Inn</a>
+    <div class="flex items-center space-x-4">
+      <a href="index.html" class="text-gray-700 hover:text-orange-500">Home</a>
+      <a href="shop.html" class="text-gray-700 hover:text-orange-500">Shop</a>
+      <a href="index.html#about" class="text-gray-700 hover:text-orange-500">About Us</a>
+      <a href="index.html#contact" class="text-gray-700 hover:text-orange-500">Contact</a>
+    </div>
+
+
+  </div>
+</nav>
+
+<!-- Cart Icon (floating) -->
+<!-- <a id="cart-icon" href="#" -->
+  <!-- class="absolute right-4 top-[72px] bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition z-40 flex items-center shadow-lg"> -->
+  <!-- <i class="fa fa-shopping-cart mr-2"></i> -->
+  <!-- <span id="cart-count" class="font-bold">0</span> -->
+<!-- </a> -->
+
+
+<div class="pt-16">
+  <!-- Main content will be injected here -->
+</div>
+<!-- Snack items will be dynamically injected here -->
+<section class="py-12 px-4 max-w-7xl mx-auto">
+  <div class="mb-10 text-center">
+    <h1 class="text-4xl font-bold text-orange-500 mb-2">All Snacks</h1>
+    <p class="text-gray-600">Fresh, local & international vibes 😋</p>
+  </div>
+  <div id="snack-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <!-- Items will be injected below -->
+  </div>
+</section>
+<!-- Script moved to just before closing body tag -->
+<!-- Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+    <h2 class="text-xl font-bold text-orange-500 mb-4">Login Required</h2>
+    <form id="login-form" class="space-y-4">
+      <input id="login-email" type="email" placeholder="Email" class="w-full px-4 py-2 border rounded" required />
+      <input id="login-password" type="password" placeholder="Password" class="w-full px-4 py-2 border rounded" required />
+      <div id="login-error-message" class="text-red-500 text-sm hidden"></div>
+      <div class="flex justify-between items-center">
+        <button type="button" id="close-login-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded">Login</button>
+      </div>
+      <p class="text-sm text-center text-gray-600 mt-4">
+        Don’t have an account?
+        <a href="#" id="open-register-from-login" class="text-orange-500 hover:underline">Register here</a>
+      </p>
+    </form>
+  </div>
+</div>
+<!-- Register Modal -->
+<div id="register-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+    <h2 class="text-xl font-bold text-orange-500 mb-4">Create an Account</h2>
+    <form id="register-form" class="space-y-4">
+      <input id="register-name" type="text" placeholder="Full Name" class="w-full px-4 py-2 border rounded" required />
+      <input id="register-phone" type="tel" placeholder="Phone Number" class="w-full px-4 py-2 border rounded" required />
+      <input id="register-email" type="email" placeholder="Email" class="w-full px-4 py-2 border rounded" required />
+      <input id="register-password" type="password" placeholder="Password" class="w-full px-4 py-2 border rounded" required />
+      <input id="register-confirm" type="password" placeholder="Confirm Password" class="w-full px-4 py-2 border rounded" required />
+      <div id="register-error-message" class="text-red-500 text-sm hidden"></div>
+      <div class="flex justify-between items-center">
+        <button id="close-register-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded">Register</button>
+      </div>
+      <p class="text-sm text-center text-gray-600 mt-4">
+        Already have an account?
+        <a href="#" id="open-login-from-register" class="text-orange-500 hover:underline">Login here</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<!-- Firebase and SnackInn scripts -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script type="module" src="snackinn-firebase.js"></script>
+<script type="module">
+import { auth } from "./snackinn-firebase.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const loginForm = document.getElementById("login-form");
+const loginModal = document.getElementById("login-modal");
+const closeLoginModalBtn = document.getElementById("close-login-modal");
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const errorBox = document.getElementById("login-error-message");
+
+    if (errorBox) {
+      errorBox.textContent = "";
+      errorBox.classList.add("hidden");
+    }
+
+    if (!email || !password) {
+      if (errorBox) {
+        errorBox.textContent = "Please enter both email and password.";
+        errorBox.classList.remove("hidden");
+      }
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      loginModal.classList.add("hidden");
+
+     // 🔥 Close cart popup if it's open
+      const cartPopup = document.getElementById("cart-popup");
+      if (cartPopup) cartPopup.remove();
+
+      if (window.showUserStatus) showUserStatus();
+    } catch (err) {
+      if (errorBox) {
+        errorBox.textContent = "❌ " + err.message;
+        errorBox.classList.remove("hidden");
+      }
+    }
+  });
+}
+
+if (closeLoginModalBtn) {
+  closeLoginModalBtn.addEventListener("click", () => {
+    loginModal.classList.add("hidden");
+  });
+}
+
+// 🔥 Profile + Logout UI
+function showUserStatus() {
+  import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ signOut }) => {
+    const user = auth.currentUser;
+    const nav = document.getElementById("auth-nav");
+    if (!nav) return;
+
+    if (user) {
+      nav.innerHTML = `
+        <div class="flex items-center space-x-4">
+          <a href="dashboard.html" title="Dashboard">
+            <i class="fa fa-user-circle text-2xl text-orange-500 hover:text-orange-600"></i>
+          </a>
+          <span class="text-orange-500 font-semibold">Welcome, ${user.displayName || user.email}</span>
+          <button id="logout-btn" class="text-red-500 font-semibold hover:underline">Logout</button>
+        </div>
+      `;
+
+      document.getElementById("logout-btn")?.addEventListener("click", async () => {
+        await signOut(auth);
+        location.reload();
+      });
+
+    } else {
+      nav.innerHTML = `
+        <a href="#" id="open-login-from-status" class="text-orange-500 font-semibold hover:underline">Login</a>
+        <a href="#" id="open-register-from-status" class="text-orange-500 font-semibold hover:underline">Register</a>
+      `;
+
+      document.getElementById("open-login-from-status")?.addEventListener("click", () => {
+        document.getElementById("login-modal")?.classList.remove("hidden");
+      });
+
+      document.getElementById("open-register-from-status")?.addEventListener("click", () => {
+        document.getElementById("register-modal")?.classList.remove("hidden");
+      });
+    }
+  });
+}
+
+
+if (typeof window.showUserStatus === 'undefined') {
+  window.showUserStatus = showUserStatus;
+}
+showUserStatus(); // Always call it
+
+
+
+</script>
+
+<script>
+  document.getElementById("open-register-from-login")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById("login-modal")?.classList.add("hidden");
+    document.getElementById("register-modal")?.classList.remove("hidden");
+  });
+</script>
+
+<script type="module">
+import { auth } from "./snackinn-firebase.js";
+import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// Swap between modals
+document.getElementById("open-login-from-register")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("register-modal")?.classList.add("hidden");
+  document.getElementById("login-modal")?.classList.remove("hidden");
+});
+
+document.getElementById("close-register-modal")?.addEventListener("click", () => {
+  document.getElementById("register-modal")?.classList.add("hidden");
+});
+
+// Handle Register
+document.getElementById("register-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("register-name").value.trim();
+  const phone = document.getElementById("register-phone").value.trim();
+  const email = document.getElementById("register-email").value.trim();
+  const password = document.getElementById("register-password").value;
+  const confirm = document.getElementById("register-confirm").value;
+  const errorBox = document.getElementById("register-error-message");
+
+  if (errorBox) {
+    errorBox.textContent = "";
+    errorBox.classList.add("hidden");
+  }
+
+  if (!name || !email || !password || !confirm || !phone) {
+    errorBox.textContent = "Please fill in all fields.";
+    errorBox.classList.remove("hidden");
+    return;
+  }
+
+  if (password !== confirm) {
+    errorBox.textContent = "Passwords do not match.";
+    errorBox.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    console.log("Phone stored separately:", phone); // You can use Firestore if needed
+
+    document.getElementById("register-modal")?.classList.add("hidden");
+    if (window.showUserStatus) showUserStatus();
+  } catch (err) {
+    errorBox.textContent = "❌ " + err.message;
+    errorBox.classList.remove("hidden");
+  }
+});
+</script>
+
+<script>
+  // 👇 Switch from Register to Login Modal
+  document.getElementById("open-login-from-register")?.addEventListener("click", function (e) {
+    e.preventDefault();
+    const loginModal = document.getElementById("login-modal");
+    const registerModal = document.getElementById("register-modal");
+
+    if (registerModal && loginModal) {
+      registerModal.classList.add("hidden");
+      loginModal.classList.remove("hidden");
+    }
+  });
+</script>
+
+<script>
+  document.getElementById("close-register-modal")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.add("hidden");
+  });
+</script>
+
+
+    <script>
+      let auth = null;
+      try {
+        auth = firebase.auth();
+      } catch (e) {
+        console.error("Firebase Auth not initialized. Ensure Firebase is properly configured.");
+      }
+      // Ensure Firebase Auth is initialized before using it
+      if (!auth) {
+        console.error("Firebase Auth is not available. Please check your Firebase configuration.");
+      } else {
+        auth.onAuthStateChanged(user => {
+          if (user) {
+            console.log("User is logged in:", user);
+          } else {
+            console.log("No user is logged in.");
+          }
+        });
+      } 
+      // Ensure Tailwind CSS is loaded
+      if (typeof tailwindcss === 'undefined') {
+        console.error("Tailwind CSS is not loaded. Please check your Tailwind CSS setup.");
+      } else {
+        tailwindcss.init();
+      }
+      // Ensure Font Awesome is loaded
+      if (typeof FontAwesome === 'undefined') {
+        console.error("Font Awesome is not loaded. Please check your Font Awesome setup.");
+      } else {
+        FontAwesome.load();
+      }
+      // Ensure the DOM is fully loaded before running scripts
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          initShop();
+        });
+      } else {
+        initShop();
+      } addEventListener('DOMContentLoaded', function() {
+        initShop();
+      }); 
+      function initShop() {
+        // Initialize shop functionality here
+        console.log("Shop initialized");
+      }
+      // Ensure the DOM is fully loaded before running scripts
+      if (document.readyState === 'loading') {  
+        document.addEventListener('DOMContentLoaded', function() {
+          initShop();
+        });
+      } else {
+        initShop();
+      }
+   
+
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const snackGrid = document.getElementById('snack-grid');
+      const snacks = [
+        { id: 101, name: "Chicken Biriyani", price: 450, image: "images/chicken biryani.jpg", description: "Deep-fried spicy potatoes loved along the coast." },
+        { id: 102, name: "Chips Kuku", price: 350, image: "images/Crispy Fried Chicken & Golden Fries.jpg", description: "Crispy fries served with juicy chicken pieces." },
+        { id: 103, name: "Mandazi", price: 100, image: "images/Maandazi _ Mahamri recipe _ How to make soft maandazi _mahamri _ Perfect maandazi _ Cuisines _.jpg", description: "Sweet, fluffy East African doughnuts." },
+        { id: 104, name: "Samosas", price: 150, image: "images/Beef Samosas.jpg", description: "Crispy pastry filled with spicy meat or veggies." },
+        { id: 105, name: "Ugali + Sukuma + Beef", price: 280, image: "images/beef + ugali+ sukuma.jpg", description: "Classic Kenyan meal with beef, greens, and ugali." },
+        { id: 106, name: "Pizza Slice", price: 220, image: "images/BBQ Pizza _ Best Food For Health.jpg", description: "Cheesy pizza slice with your favorite toppings." },
+        { id: 107, name: "Burger", price: 500, image: "images/Burger 🍔.jpg", description: "Juicy burger with fresh veggies and sauce." },
+        { id: 108, name: "Hotdog", price: 300, image: "images/Loaded Chili Cheese Dogs with Spicy Goodness - knedir Recipes.jpg", description: "Tasty sausage in a soft bun with toppings." },
+        { id: 109, name: "Indomie Noodles", price: 80, image: "images/Indomie Noodles - Nitin Tandon Food Styling & Consulting.jpg", description: "A Taste of the World, Ready in Minutes." },
+        { id: 110, name: "Kebabs", price: 200, image: "images/🥙 Turkish Lentil Köfte Spicy red lentil patties with bulgur and herbs, served cold_ Ingredients_ - 1 cup red lentils - 1 cup fine bulgur - 1 onion, finely chopped - 1 tablespoon tomato paste - 1 teaspoon cumin - ¼ cup pa.jpg", description: "Spiced minced meat on a stick, deep-fried." },
+        { id: 111, name: "Fries + Sausage", price: 270, image: "images/Stockvideo Grilled Sausages and Fries Platter with Refreshing Beverage.jpg", description: "Golden fries served with a tasty sausage." },
+        { id: 112, name: "Garlic Potato Cheese Ball", price: 150, image: "images/Garlic Potato Cheese Ball.jpg", description: "Crispy on the outside, melty magic inside." },
+        { id: 113, name: "Milkshake", price: 350, image: "images/Indulge in this rich and creamy Oreo milkshake….jpg", description: "Creamy milkshake in various flavors." },
+        { id: 114, name: "Donuts", price: 120, image: "images/These donuts are soft and fluffy with a crispy….jpg", description: "Soft, sweet donuts with a sugar glaze." },
+        { id: 115, name: "Spring Rolls", price: 180, image: "images/Beef Lumpia Recipe.jpg", description: "Crispy rolls filled with veggies or meat." },
+        { id: 116, name: "Fried Fish", price: 600, image: "images/Quick and Easy Whole Tilapia_.jpg", description: "Deep-fried fish, crispy and delicious." },
+        { id: 117, name: "Pancakes", price: 150, image: "images/Nutella Pancakes.jpg", description: "Soft pancakes served with syrup or honey." },
+        { id: 118, name: "Chips Masala", price: 300, image: "images/Chips masala anyone_.jpg", description: "Spicy masala fries, a Kenyan favorite." },
+        { id: 119, name: "Ice Cream", price: 250, image: "images/🍦🍫🥜 Moose Tracks Ice Cream with Peanut Butter….jpg", description: "Cold, creamy ice cream in many flavors." },
+        { id: 120, name: "Chapati Wraps", price: 350, image: "images/Spicy Chicken Paratha Rolls.jpg", description: "Chapati wraps filled with tasty fillings." },
+      ];
+  
+      snackGrid.innerHTML = snacks.map(snack => `
+        <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden">
+          <img src="${snack.image}" alt="${snack.name ? snack.name : 'Snack image'}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=No+Image';">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-1">${snack.name}</h3>
+            <p class="text-sm text-gray-500 mb-2">${snack.description ? snack.description : 'Delicious and freshly made'}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-orange-500 font-bold">KSh ${snack.price}</span>
+                <button class="add-to-cart bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-full text-sm"
+                data-id="${snack.id}"
+                data-name="${snack.name}"
+                data-price="${snack.price}"
+                data-image="${snack.image}">
+                Add to Cart
+                </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+  
+      // ✅ Dummy Add to Cart (replace with your logic)
+      // Save cart to localStorage and redirect to checkout/index as needed
+      // Helper to get cart from localStorage
+      // Ensure cart items have valid properties
+      
+      function getCart() {
+        const cart = localStorage.getItem('snack_cart');
+        let parsed = [];
+        try {
+          parsed = cart ? JSON.parse(cart) : [];
+          // Ensure all items have valid properties
+          parsed = parsed.map(item => ({
+            id: typeof item.id === 'undefined' ? 0 : parseInt(item.id, 10),
+            name: item.name || 'Unknown',
+            price: isNaN(parseInt(item.price, 10)) ? 0 : parseInt(item.price, 10),
+            image: item.image || '',
+            quantity: isNaN(parseInt(item.quantity, 10)) || item.quantity < 1 ? 1 : parseInt(item.quantity, 10)
+          }));
+        } catch (e) {
+          parsed = [];
+        }
+        return parsed;
+      } 
+      function addToCart(id, name, price, image) {
+        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
+        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
+        name = name || 'Unknown';
+        image = image || '';
+        let cart = getCart();
+        const existing = cart.find(item => parseInt(item.id, 10) === id);
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({ id, name, price, image, quantity: 1 });
+        }
+        saveCart(cart);
+        showToast(`${name} (KSh ${price}) added to cart!`);
+      }
+  
+      // Helper to update cart popup contents without closing/reopening
+      function updateCartPopup() {
+        const cart = getCart();
+        const cartItemsElem = document.getElementById('cart-items');
+        if (!cartItemsElem) return;
+        cartItemsElem.innerHTML = cart.length === 0
+        ? '<p class="text-gray-500 text-center">Your cart is empty.</p>'
+        : cart.map(item => `
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3 border" onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=No+Image';">
+            <div>
+          <div class="font-semibold">${item.name}</div>
+        </div>
+        </div>
+        <div class="flex items-center">
+            <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
+            <span class="mx-1">${item.quantity}</span>
+            <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
+            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          `).join('');
+        // Update total
+        const totalElem = cartItemsElem.parentElement.querySelector('.font-bold.text-orange-600');
+        if (totalElem) {
+          totalElem.textContent = `KSh ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}`;
+        }
+      }
+  
+      function saveCart(cart) {
+        localStorage.setItem('snack_cart', JSON.stringify(cart));
+        // Always update sessionStorage for checkout page access
+        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+        document.dispatchEvent(new Event('cart-updated'));
+      }
+  
+      function addToCart(id, name, price, image) {
+        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
+        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
+        name = name || 'Unknown';
+        image = image || '';
+        let cart = getCart();
+        const existing = cart.find(item => parseInt(item.id, 10) === id);
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({ id, name, price, image, quantity: 1 });
+        }
+        saveCart(cart);
+        showToast(`${name} (KSh ${price}) added to cart!`);
+      }
+  
+      function showToast(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.className = "fixed bottom-8 right-8 bg-orange-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-bounce";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+      }
+  
+      function showCartPopup() {
+        let popup = document.getElementById('cart-popup');
+        if (popup) popup.remove();
+  
+        const cart = getCart();
+        popup = document.createElement('div');
+        popup.id = 'cart-popup';
+        popup.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
+        popup.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+          <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-400 hover:text-orange-500 text-2xl">&times;</button>
+          <h2 class="text-2xl font-bold mb-4 text-orange-500 flex items-center"><i class="fa fa-shopping-cart mr-2"></i>Cart</h2>
+          <div id="cart-items" class="mb-4 max-h-60 overflow-y-auto">
+          ${cart.length === 0 ? '<p class="text-gray-500 text-center">Your cart is empty.</p>' : cart.map(item => `
+            <div class="flex items-center justify-between mb-3">
+              <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3 border" onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=No+Image';">
+              <div>
+                <div class="font-semibold">${item.name}</div>
+                <div class="text-sm text-gray-500">KSh ${item.price} x ${item.quantity}</div>
+              </div>
+              <div class="flex items-center">
+                <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
+                <span class="mx-1">${item.quantity}</span>
+                <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
+                <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+          `).join('')}
+          </div>
+          <div class="flex justify-between items-center mt-4">
+            <span class="font-bold text-orange-600">KSh ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}</span>
+            <button id="checkout-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full">Checkout</button>
+          </div>
+        </div>
+        `;
+        document.body.appendChild(popup);
+        const closeBtn = popup.querySelector('#close-cart-popup');
+        if (closeBtn) closeBtn.onclick = function() { 
+          if (popup && popup.parentNode) popup.parentNode.removeChild(popup); 
+        };
+
+        // Add event listener for checkout button
+        const checkoutBtn = popup.querySelector('#checkout-btn');
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', function() {
+    // Use Firebase Auth to check login before redirecting
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const cart = getCart();
+
+      if (user && user.uid) {
+        localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
+        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+        window.location.href = 'checkout.html';
+      } else {
+        const loginModal = document.getElementById("login-modal");
+        if (loginModal) {
+          loginModal.classList.remove("hidden");
+        }
+
+        // ✅ Close cart popup if it's open
+        const cartPopup = document.getElementById("cart-popup");
+        if (cartPopup) cartPopup.remove();
+      }
+    });
+  });
+}
+
+  
+        const cartItemsElem = popup.querySelector('#cart-items');
+        if (cartItemsElem) {
+          cartItemsElem.addEventListener('click', function(e) {
+            const id = parseInt(e.target.getAttribute('data-id'), 10);
+            let cart = getCart();
+            if (e.target.classList.contains('increase-qty')) {
+              const item = cart.find(i => i.id === id);
+              if (item) item.quantity += 1;
+              saveCart(cart);
+              showCartPopup();
+            }
+            if (e.target.classList.contains('decrease-qty')) {
+              const item = cart.find(i => i.id === id);
+              if (item && item.quantity > 1) {
+          item.quantity -= 1;
+            saveCart(cart);
+          showCartPopup();
+              } else if (item && item.quantity === 1) {
+          cart = cart.filter(i => i.id !== id);
+          saveCart(cart);
+          showCartPopup();
+              }
+            }
+            if (e.target.classList.contains('remove-item')) {
+              cart = cart.filter(i => i.id !== id);
+              saveCart(cart);
+              showCartPopup();
+            }
+          });
+        }
+
+        // Add Login/Register Nav
+        function renderAuthNav() {
+  const existingNav = document.getElementById('auth-nav');
+  if (existingNav) existingNav.remove();
+
+  
+
+  const user = window.auth?.currentUser;
+
+  if (user) {
+    // 👤 If logged in
+    
+  } else {
+    // 🚪 If not logged in
+    
+  }
+
+  document.body.appendChild(nav);
+}
+
+        renderAuthNav();
+      }
+  
+      function renderCartIcon() {
+        const existingIcon = document.querySelector('a#cart-icon');
+        if (existingIcon) existingIcon.remove();
+        const cartCount = getCart().reduce((sum, item) => sum + item.quantity, 0);
+        const cartIcon = document.createElement('a');
+        cartIcon.id = "cart-icon";
+        cartIcon.href = "#";
+        cartIcon.className = "fixed top-[90px] right-6 z-40 flex items-center bg-white shadow-lg rounded-full px-4 py-2 hover:bg-orange-100 transition";
+        cartIcon.innerHTML = `
+        <i class="fa fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
+        <span id="cart-count" class="font-bold text-orange-600">${cartCount}</span>
+        `;
+        cartIcon.addEventListener('click', function(e) {
+          e.preventDefault();
+          showCartPopup();
+        });
+        document.body.appendChild(cartIcon);
+      }
+  
+      renderCartIcon();
+  
+      document.addEventListener('cart-updated', () => {
+        updateCartCount();
+        const existingPopup = document.getElementById('cart-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+            // Save cart to sessionStorage before redirecting to checkout
+            sessionStorage.setItem('checkout_cart', JSON.stringify(getCart()));
+          showCartPopup();
+        }
+      });
+  
+        function updateCartCount() {
+          const cartCountElem = document.getElementById('cart-count');
+          if (cartCountElem) {
+            cartCountElem.textContent = getCart().reduce((sum, item) => sum + item.quantity, 0);
+          }
+        }
+
+        snackGrid.addEventListener("click", function (e) {
+          if (e.target.classList.contains("add-to-cart")) {
+            const btn = e.target;
+            addToCart(
+              btn.getAttribute("data-id"),
+              btn.getAttribute("data-name"),
+              btn.getAttribute("data-price"),
+              btn.getAttribute("data-image")
+            );
+            renderCartIcon();
+          }
+        });
+      });
+  document.getElementById("close-login-modal")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.add("hidden");
+  });
+
+  // ✅ Checkout Redirect Integration #checkout-btn 
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "checkout-btn") {
+      // Always get the latest cart from localStorage
+      const cart = JSON.parse(localStorage.getItem('snack_cart') || '[]');
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user && user.uid) {
+          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
+          window.location.href = "checkout.html";
+        } else {
+          document.getElementById("login-modal")?.classList.remove("hidden");
+        }
+      });
+    }
+  });
+      </script>
+    </body>
+  </html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Popular Recipes - Snack Inn</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script type="module" src="./snackinn-firebase.js"></script>
+</head>
+<body class="bg-orange-50 font-sans">
+
+<!-- Navbar -->
+<nav class="bg-white shadow fixed w-full z-50 top-0 left-0">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <a href="index.html" class="text-orange-500 font-bold text-xl flex items-center gap-2">
+      <i class="fas fa-utensils text-2xl"></i> Snack Inn
+    </a>
+    <div class="flex items-center gap-6">
+      <a href="index.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-home mr-1"></i>Home</a>
+      <a href="index.html#about" class="text-gray-700 hover:text-orange-500">About</a>
+      <a href="index.html#contact" class="text-gray-700 hover:text-orange-500">Contact</a>
+      <a href="recipes.html" class="text-gray-700 hover:text-orange-500">Recipes</a>
+      <a href="shop.html" class="text-gray-700 hover:text-orange-500">Shop</a>
+      <!-- Profile Button -->
+      <button id="profile-btn" class="flex items-center bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition">
+        <i class="fas fa-user-circle text-lg mr-1"></i> <span class="hidden sm:inline font-semibold">Profile</span>
+      </button>
+      <!-- Auth Navigation -->
+      <div id="auth-nav" class="flex gap-3"></div>
+    </div>
+  </div>
+</nav>
+<!-- Profile Sidebar -->
+<div id="profile-btn" class="hidden sm:flex items-center bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition">
+  <i class="fas fa-user-circle text-lg mr-1"></i> <span class="hidden sm:inline font-semibold">Profile</span>
+</div>
+<!-- Mobile Login Button -->
+<div id="mobile-login-btn" class="sm:hidden fixed bottom-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-orange-600 transition">
+  <i class="fas fa-user-circle text-lg"></i>
+</div>
+<!-- Profile Sidebar -->
+<div id="profile-sidebar" class="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 transform translate-x-full transition-transform">
+  <div class="p-6 flex flex-col h-full justify-between">
+    <div>
+      <h3 class="text-xl font-bold text-orange-500 mb-4">Your Profile</h3>
+      <p id="profile-name" class="text-gray-700 mb-6">Welcome, User</p>
+      <a href="dashboard.html" class="block bg-orange-500 text-white text-center py-2 rounded hover:bg-orange-600 mb-4">Go to Dashboard</a>
+    </div>
+    <button id="logout-btn" class="w-full text-red-500 font-semibold hover:underline mt-auto">Logout</button>
+  </div>
+</div>
+<!-- Overlay for Profile Sidebar -->
+<div id="profile-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+<!-- Mobile Login/Register Buttons -->
+<div id="mobile-login-buttons" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-4 flex flex-col gap-2 z-50 hidden">
+  <button id="mobile-login-btn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">Login</button>
+  <button id="mobile-register-btn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">Register</button>
+</div>
+
+
+<!-- Recipes Section -->
+<section class="pt-24 px-4 max-w-7xl mx-auto">
+  <h1 class="text-4xl font-bold text-center text-orange-600 mb-6">Popular Kenyan Recipes</h1>
+  <div id="recipe-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+</section>
+
+<!-- Recipe Modal -->
+<div id="recipe-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white w-full max-w-xl rounded-xl p-6 relative">
+    <button id="close-modal" class="absolute top-2 right-4 text-gray-500 hover:text-orange-500 text-xl">&times;</button>
+    <h3 id="modal-title" class="text-2xl font-bold text-orange-600 mb-2"></h3>
+    <p id="modal-desc" class="text-gray-700 mb-4"></p>
+    <ul id="modal-steps" class="list-disc list-inside space-y-2 text-gray-600"></ul>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
+    <button id="close-login" class="absolute top-2 right-4 text-xl text-gray-600 hover:text-orange-500">&times;</button>
+    <h2 class="text-2xl font-bold text-orange-500 mb-4">Login</h2>
+    <form id="login-form" class="space-y-4">
+      <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-2 border rounded" required />
+      <input type="password" id="login-password" placeholder="Password" class="w-full px-4 py-2 border rounded" required />
+      <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div id="register-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
+    <button id="close-register" class="absolute top-2 right-4 text-xl text-gray-600 hover:text-orange-500">&times;</button>
+    <h2 class="text-2xl font-bold text-orange-500 mb-4">Register</h2>
+    <form id="register-form" class="space-y-4">
+      <input type="text" id="register-name" placeholder="Full Name" class="w-full px-4 py-2 border rounded" required />
+      <input type="email" id="register-email" placeholder="Email" class="w-full px-4 py-2 border rounded" required />
+      <input type="password" id="register-password" placeholder="Password" class="w-full px-4 py-2 border rounded" required />
+      <input type="password" id="register-confirm" placeholder="Confirm Password" class="w-full px-4 py-2 border rounded" required />
+      <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- Sidebar Profile -->
+<div id="profile-sidebar" class="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 transform translate-x-full transition-transform">
+  <div class="p-6 flex flex-col h-full justify-between">
+    <div>
+      <h3 class="text-xl font-bold text-orange-500 mb-4">Your Profile</h3>
+      <p id="profile-name" class="text-gray-700 mb-6">Welcome, User</p>
+      <a href="dashboard.html" class="block bg-orange-500 text-white text-center py-2 rounded hover:bg-orange-600 mb-4">Go to Dashboard</a>
+    </div>
+    <button id="logout-btn" class="w-full text-red-500 font-semibold hover:underline mt-auto">Logout</button>
+  </div>
+</div>
+
+<!-- Recipes Script -->
+<script type="module">
+  const recipes = [
+      {
+        title: "Chapati",
+        time: "45 mins",
+        image: "/images/Soft Brown Roti.jpg",
+        rating: 4.5,
+        chef: "Chef Wanjiru",
+        description: "Soft layered flatbread for stews",
+        steps: ["Mix flour, oil, salt & water", "Roll and fold dough", "Pan-fry until golden on both sides"]
+      },
+      {
+        title: "Mandazi",
+        time: "30 mins",
+        image: "/images/Maandazi _ Mahamri recipe _ How to make soft maandazi _mahamri _ Perfect maandazi _ Cuisines _.jpg",
+        rating: 5,
+        chef: "Mama Aisha",
+        description: "Sweet, fluffy deep-fried coconut bread",
+        steps: ["Mix flour, sugar, cardamom", "Fry in hot oil until golden"]
+      },
+      {
+        title: "Samosa",
+        time: "40 mins",
+        image: "/images/Beef Samosas.jpg",
+        rating: 4,
+        chef: "Chef Otieno",
+        description: "Spiced meat or veggie-filled triangles",
+        steps: ["Prepare filling", "Wrap in dough", "Deep fry until crispy"]
+      },
+      {
+        title: "Githeri",
+        time: "1 hr",
+        image: "/images/Chili con Carne Vegetarisch Rezept - Mit Linsen & Vegan.jpg",
+        rating: 4,
+        chef: "Chef Mbugua",
+        description: "Maize & beans stew, hearty and local",
+        steps: ["Boil maize & beans", "Fry with onions & tomatoes"]
+      },
+      {
+        title: "Ugali",
+        time: "20 mins",
+        image: "/images/How to Make Perfect Ugali_ A Step-by-Step Guide.jpg",
+        rating: 5,
+        chef: "Mama Njeri",
+        description: "Kenya’s staple maize meal",
+        steps: ["Boil water", "Add flour gradually", "Stir until firm"]
+      },
+      {
+        title: "Kachumbari",
+        time: "10 mins",
+        image: "/images/Kachumbari Salad.jpg",
+        rating: 5,
+        chef: "Chef Nyambura",
+        description: "Fresh tomato & onion salad",
+        steps: ["Chop tomatoes & onions", "Add lemon & coriander"]
+      },
+      {
+        title: "Pilau",
+        time: "1 hr",
+        image: "/images/download (2).jpg",
+        rating: 4.5,
+        chef: "Chef Musa",
+        description: "Spiced rice with meat",
+        steps: ["Fry onions, garlic", "Add meat & spices", "Add rice and simmer"]
+      },
+      {
+        title: "Matoke",
+        time: "50 mins",
+        image: "/images/Matoke.jpg",
+        rating: 4,
+        chef: "Chef Tito",
+        description: "Stewed plantains with tomatoes",
+        steps: ["Peel & cut matoke", "Simmer with onions, tomatoes"]
+      },
+      {
+        title: "Mukimo",
+        time: "1 hr",
+        image: "/images/African cuisine popularly known as mukimo and wet fried beef.jpg",
+        rating: 4,
+        chef: "Chef Nduta",
+        description: "Mashed potatoes with peas & maize",
+        steps: ["Boil all", "Mash together", "Serve hot"]
+      },
+      {
+        title: "Matumbo Stew",
+        time: "1.5 hrs",
+        image: "/images/Matumbo Stew Recipe by Winny Edward.jpg",
+        rating: 3.5,
+        chef: "Mama Brian",
+        description: "Spicy tripe stew",
+        steps: ["Clean & boil matumbo", "Simmer in onion-tomato gravy"]
+      },
+      {
+        title: "Bhajia",
+        time: "25 mins",
+        image: "/images/Bhajia.jpg",
+        rating: 5,
+        chef: "Chef Patel",
+        description: "Spicy potato fritters",
+        steps: ["Slice potatoes", "Coat in spiced gram flour", "Deep fry"]
+      },
+      {
+        title: "Nyama Choma",
+        time: "1 hr",
+        image: "/images/Nyama Choma (Kenyan Grilled Meat).jpg",
+        rating: 5,
+        chef: "Chef Bwire",
+        description: "Kenyan-style grilled meat",
+        steps: ["Marinate meat", "Charcoal grill slowly"]
+      },
+      {
+        title: "Tilapia Fry",
+        time: "35 mins",
+        image: "/images/Easy But Juicy and Tasty Oben Grilled Tilapia in 10 minutes.jpg",
+        rating: 4,
+        chef: "Mama Sharon",
+        description: "Whole fried fish, crispy delight",
+        steps: ["Clean fish", "Deep fry till golden"]
+      },
+      {
+        title: "Kuku Paka",
+        time: "45 mins",
+        image: "/images/Kuku Paka (african Chicken Curry Recipe).jpg",
+        rating: 4.5,
+        chef: "Chef Ramla",
+        description: "Coconut chicken curry",
+        steps: ["Grill chicken", "Simmer in coconut sauce"]
+      },
+      {
+        title: "Smokie Pasua",
+        time: "10 mins",
+        image: "/images/Delicious Smoked Sausage Meals.jpg",
+        rating: 3.5,
+        chef: "Street Vendor Jay",
+        description: "Sliced sausage with kachumbari",
+        steps: ["Slice smokie", "Fill with kachumbari"]
+      },
+      {
+        title: "Viazi Karai",
+        time: "25 mins",
+        image: "/images/SIMPLE VIAZI KARAI RECIPE.jpg",
+        rating: 4,
+        chef: "Coastal Mama",
+        description: "Deep-fried turmeric potatoes",
+        steps: ["Boil potatoes", "Dip in flour mix", "Deep fry"]
+      },
+      {
+        title: "Ndengu Stew",
+        time: "40 mins",
+        image: "/images/Ndengu Stew(green Gram's) Recipe by Lucy Muliro,lucymuliro8@gmail.jpg",
+        rating: 4,
+        chef: "Chef Muthoni",
+        description: "Stewed green grams",
+        steps: ["Boil ndengu", "Simmer in onion-tomato base"]
+      },
+      {
+        title: "Beans & Chapati",
+        time: "1 hr",
+        image: "/images/Chapati beans.jpg",
+        rating: 4.5,
+        chef: "Chef Carol",
+        description: "Soft chapati with spicy beans stew",
+        steps: ["Boil beans", "Fry with onions & serve with chapati"]
+      },
+      {
+        title: "Mahambri",
+        time: "30 mins",
+        image: "/images/Maandazi _ Mahamri recipe _ How to make soft maandazi _mahamri _ Perfect maandazi _ Cuisines _.jpg",
+        rating: 5,
+        chef: "Zanzibar Mama",
+        description: "Sweet Swahili coconut bread",
+        steps: ["Prepare dough", "Deep fry until puffed"]
+      },
+      {
+        title: "Minji Stew",
+        time: "35 mins",
+        image: "/images/Classic Beef Stew Recipe - Recipes by Janet.jpg",
+        rating: 4,
+        chef: "Chef Wairimu",
+        description: "Green peas cooked in stew base",
+        steps: ["Fry onions", "Add peas, carrots, simmer"]
+      },
+    ];
+
+  function createStars(rating) {
+    const full = Math.floor(rating);
+    const half = rating % 1 !== 0;
+    return '<div class="flex text-yellow-400">' +
+      [...Array(full)].map(() => `<i class="fas fa-star"></i>`).join('') +
+      (half ? `<i class="fas fa-star-half-alt"></i>` : '') +
+      [...Array(5 - full - (half ? 1 : 0))].map(() => `<i class="far fa-star"></i>`).join('') +
+      '</div>';
+  }
+
+  function renderRecipes() {
+    const grid = document.getElementById("recipe-grid");
+    grid.innerHTML = recipes.map((r, i) => `
+      <div class="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+        <img src="${r.image}" class="w-full h-40 object-cover">
+        <div class="p-4">
+          <h3 class="text-lg font-bold">${r.title}</h3>
+          <p class="text-sm text-gray-600">${r.description}</p>
+          <div class="flex justify-between items-center mt-2">
+            ${createStars(r.rating)}
+            <span class="text-xs text-orange-500">${r.time}</span>
+          </div>
+          <button onclick="openModal(${i})" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4">View Recipe</button>
+        </div>
+      </div>`).join('');
+  }
+
+  window.openModal = (i) => {
+    const recipe = recipes[i];
+    document.getElementById("modal-title").textContent = recipe.title;
+    document.getElementById("modal-desc").textContent = recipe.description;
+    document.getElementById("modal-steps").innerHTML = recipe.steps.map(s => `<li>${s}</li>`).join('');
+    document.getElementById("recipe-modal").classList.remove("hidden");
+  };
+
+  document.getElementById("close-modal").addEventListener("click", () => {
+    document.getElementById("recipe-modal").classList.add("hidden");
+  });
+
+  renderRecipes();
+
+  // Show user status on page load
+  window.addEventListener("load", () => {
+    showUserStatus();
+  });
+  // Close modal on outside click
+  window.addEventListener("click", (e) => {
+    const modal = document.getElementById("recipe-modal");
+    if (modal && !modal.contains(e.target) && !e.target.matches("#recipe-grid button")) {
+      modal.classList.add("hidden");
+    }
+  });
+  // Close modals on escape key
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modals = document.querySelectorAll(".modal-overlay, #recipe-modal, #login-modal, #register-modal");
+      modals.forEach(modal => modal.classList.add("hidden"));
+    }
+  });
+  // Close profile sidebar on escape key
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const sidebar = document.getElementById("profile-sidebar");
+      if (sidebar) {
+        sidebar.classList.add("translate-x-full");
+      }
+    }
+  });
+  // Close profile sidebar on outside click
+  window.addEventListener("click", (e) => {
+    const sidebar = document.getElementById("profile-sidebar");
+    const profileBtn = document.getElementById("profile-btn");
+    if (sidebar && !sidebar.contains(e.target) && !profileBtn.contains(e.target)) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // Close profile sidebar on overlay click
+  document.getElementById("profile-overlay")?.addEventListener("click", () => {
+    const sidebar = document.getElementById("profile-sidebar");
+    if (sidebar) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // Close profile sidebar on close button click
+  document.getElementById("close-profile")?.addEventListener("click", () => {
+    const sidebar = document.getElementById("profile-sidebar");
+    if (sidebar) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // Close login modal on close button click
+  document.getElementById("close-login")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.add("hidden");
+  });
+  // Close register modal on close button click
+  document.getElementById("close-register")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.add("hidden");
+  });
+  // Close all modals function
+  function closeAllModals() {
+    document.querySelectorAll(".modal-overlay, #recipe-modal, #login-modal, #register-modal").forEach(modal => {
+      modal.classList.add("hidden");
+    });
+  }
+  // Close profile sidebar on close button click
+  document.getElementById("close-profile")?.addEventListener("click", () => {
+    const sidebar = document.getElementById("profile-sidebar");
+    if (sidebar) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // mobile menu
+  document.getElementById("mobile-menu-btn")?.addEventListener("click", () => {
+    const mobileMenu = document.getElementById("mobile-menu");
+    mobileMenu.classList.toggle("hidden");
+  });
+  // Mobile Login/Register Buttons
+  document.getElementById("mobile-login-btn")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.remove("hidden");
+  });
+  document.getElementById("mobile-register-btn")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.remove("hidden");
+  });
+  // Close modals on overlay click
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", () => {
+      overlay.parentElement.classList.add("hidden");
+    });
+  });
+  // Show user status on page load
+  function showUserStatus() {
+    const user = getAuth().currentUser;
+    const profileName = document.getElementById("profile-name");
+    const profileBtn = document.getElementById("profile-btn");
+    const authNav = document.getElementById("auth-nav");
+
+    if (user) {
+      profileName.textContent = `Welcome, ${user.displayName || user.email}`;
+      profileBtn?.classList.remove("hidden");
+      authNav.innerHTML = `
+        <button id="logout-btn" class="text-red-500 font-semibold hover:underline">Logout</button>
+      `;
+    } else {
+      profileBtn?.classList.add("hidden");
+      authNav.innerHTML = `
+        <button onclick="document.getElementById('login-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Login</button>
+        <button onclick="document.getElementById('register-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Register</button>
+      `;
+    }
+  }
+  // Show user status on page load
+  window.addEventListener("load", () => {
+    showUserStatus();
+  });
+  // Close profile sidebar on outside click
+  window.addEventListener("click", function (e) {
+    const sidebar = document.getElementById("profile-sidebar");
+    const profileBtn = document.getElementById("profile-btn");
+    if (sidebar && !sidebar.contains(e.target) && !profileBtn.contains(e.target)) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // Mobile Menu toggle
+  document.getElementById("mobile-menu-btn")?.addEventListener("click", () => {
+    const mobileMenu = document.getElementById("mobile-menu");
+    mobileMenu.classList.toggle("hidden");
+  });
+  // Mobile Login/Register Buttons
+  document.getElementById("mobile-login-btn")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.remove("hidden");
+  });
+  document.getElementById("mobile-register-btn")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.remove("hidden");
+  });
+  // Close modals on overlay click
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", () => {
+      overlay.parentElement.classList.add("hidden");
+    });
+  });
+  
+</script>
+
+<!-- Auth Scripts -->
+<!-- 🔥 Place this near bottom, just before </body> -->
+<script type="module">
+  import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const profileBtn = document.getElementById("profile-btn");
+  const sidebar = document.getElementById("profile-sidebar");
+  const profileName = document.getElementById("profile-name");
+  const logoutBtn = document.getElementById("logout-btn");
+  const authNav = document.getElementById("auth-nav");
+
+  const auth = getAuth();
+
+  // Monitor user state
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      profileName.textContent = `Welcome, ${user.displayName || user.email}`;
+      profileBtn?.classList.remove("hidden");
+    } else {
+      profileBtn?.classList.add("hidden");
+      authNav.innerHTML = `
+        <button onclick="document.getElementById('login-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Login</button>
+        <button onclick="document.getElementById('register-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Register</button>
+      `;
+    }
+  });
+
+  // Toggle profile sidebar
+  profileBtn?.addEventListener("click", () => {
+    sidebar?.classList.toggle("translate-x-full");
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+    window.logoutUser(); // uses the function from your snackinn-firebase.js
+  });
+
+  // Close sidebar on outside click
+  window.addEventListener("click", function (e) {
+    if (!sidebar.contains(e.target) && !profileBtn.contains(e.target)) {
+      sidebar.classList.add("translate-x-full");
+    }
+  });
+  // Mobile Menu toggle
+  document.getElementById("mobile-menu-btn")?.addEventListener("click", () => {
+    const mobileMenu = document.getElementById("mobile-menu");
+    mobileMenu.classList.toggle("hidden");
+  });
+  // Mobile Login/Register Buttons
+  document.getElementById("mobile-login-btn")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.remove("hidden");
+  });
+  document.getElementById("mobile-register-btn")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.remove("hidden");
+  });
+  // Close modals on overlay click
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", () => {
+      overlay.parentElement.classList.add("hidden");
+    });
+  });
+  // Show user status on page load
+  function showUserStatus() {
+    const user = getAuth().currentUser;
+    if (user) {
+      profileName.textContent = `Welcome, ${user.displayName || user.email}`;
+      profileBtn?.classList.remove("hidden");
+      authNav.innerHTML = `
+        <button id="logout-btn" class="text-red-500 font-semibold hover:underline">Logout</button>
+      `;
+    } else {
+      profileBtn?.classList.add("hidden");
+      authNav.innerHTML = `
+        <button onclick="document.getElementById('login-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Login</button>
+        <button onclick="document.getElementById('register-modal')?.classList.remove('hidden')" class="text-orange-500 font-semibold hover:underline">Register</button>
+      `;
+    }
+  }
+  
+</script>
+
+<!-- 🔐 Login/Register Logic -->
+<script>
+  document.getElementById("login-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    try {
+      await window.snackLogin(email, password);
+      document.getElementById("login-modal")?.classList.add("hidden");
+      location.reload();
+    } catch (err) {
+      alert("Login failed: " + err.message);
+    }
+  });
+
+  document.getElementById("register-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("register-name").value.trim();
+    const email = document.getElementById("register-email").value.trim();
+    const password = document.getElementById("register-password").value;
+    const confirm = document.getElementById("register-confirm").value;
+
+    if (password !== confirm) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    try {
+      await window.snackRegister(email, password, name);
+      alert("Registered successfully!");
+      document.getElementById("register-modal")?.classList.add("hidden");
+      document.getElementById("login-modal")?.classList.remove("hidden");
+    } catch (err) {
+      alert("Registration failed: " + err.message);
+    }
+  });
+
+  // Cancel buttons
+  document.getElementById("close-login")?.addEventListener("click", () => {
+    document.getElementById("login-modal")?.classList.add("hidden");
+  });
+  document.getElementById("close-register")?.addEventListener("click", () => {
+    document.getElementById("register-modal")?.classList.add("hidden");
+  });
+</script>
+
+
+</body>
+</html>

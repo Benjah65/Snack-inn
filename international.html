@@ -79,6 +79,9 @@
         Don’t have an account?
         <a href="#" id="open-register-from-login" class="text-orange-500 hover:underline">Register here</a>
       </p>
+      <p class="text-sm text-center text-gray-600 mt-4">
+        <a href="forgot-password.html" id="forgot-password-link" class="text-orange-500 hover:underline">Forgot password?</a>
+      </p>
     </form>
   </div>
 </div>
@@ -112,9 +115,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <script type="module" src="snackinn-firebase.js"></script>
+<script type="module" src="cart-utils.js"></script>
 <script type="module">
-import { auth } from "./snackinn-firebase.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { loadCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
 
 const loginForm = document.getElementById("login-form");
 const loginModal = document.getElementById("login-modal");
@@ -141,7 +145,7 @@ if (loginForm) {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(window.auth, email, password);
       loginModal.classList.add("hidden");
 
      // 🔥 Close cart popup if it's open
@@ -167,7 +171,7 @@ if (closeLoginModalBtn) {
 // 🔥 Profile + Logout UI
 function showUserStatus() {
   import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ signOut }) => {
-    const user = auth.currentUser;
+    const user = window.auth?.currentUser;
     const nav = document.getElementById("auth-nav");
     if (!nav) return;
 
@@ -183,7 +187,7 @@ function showUserStatus() {
       `;
 
       document.getElementById("logout-btn")?.addEventListener("click", async () => {
-        await signOut(auth);
+        await signOut(window.auth);
         location.reload();
       });
 
@@ -223,7 +227,6 @@ showUserStatus(); // Always call it
 </script>
 
 <script type="module">
-import { auth } from "./snackinn-firebase.js";
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Swap between modals
@@ -266,7 +269,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
   }
 
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(window.auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     console.log("Phone stored separately:", phone); // You can use Firestore if needed
 
@@ -303,7 +306,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
     <script>
       let auth = null;
       try {
-        auth = firebase.auth();
+        auth = window.auth;
       } catch (e) {
         console.error("Firebase Auth not initialized. Ensure Firebase is properly configured.");
       }
@@ -497,7 +500,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
         let popup = document.getElementById('cart-popup');
         if (popup) popup.remove();
   
-        const cart = getCart();
+        const cart = loadCart();
         popup = document.createElement('div');
         popup.id = 'cart-popup';
         popup.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
@@ -542,7 +545,7 @@ if (checkoutBtn) {
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
       const auth = getAuth();
       const user = auth.currentUser;
-      const cart = getCart();
+      const cart = loadCart();
 
       if (user && user.uid) {
         localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
@@ -567,7 +570,7 @@ if (checkoutBtn) {
         if (cartItemsElem) {
           cartItemsElem.addEventListener('click', function(e) {
             const id = parseInt(e.target.getAttribute('data-id'), 10);
-            let cart = getCart();
+            let cart = loadCart();
             if (e.target.classList.contains('increase-qty')) {
               const item = cart.find(i => i.id === id);
               if (item) item.quantity += 1;
@@ -620,7 +623,7 @@ if (checkoutBtn) {
       function renderCartIcon() {
         const existingIcon = document.querySelector('a#cart-icon');
         if (existingIcon) existingIcon.remove();
-        const cartCount = getCart().reduce((sum, item) => sum + item.quantity, 0);
+        const cartCount = loadCart().reduce((sum, item) => sum + item.quantity, 0);
         const cartIcon = document.createElement('a');
         cartIcon.id = "cart-icon";
         cartIcon.href = "#";
@@ -644,7 +647,7 @@ if (checkoutBtn) {
         if (existingPopup) {
             existingPopup.remove();
             // Save cart to sessionStorage before redirecting to checkout
-            sessionStorage.setItem('checkout_cart', JSON.stringify(getCart()));
+            sessionStorage.setItem('checkout_cart', JSON.stringify(loadCart()));
           showCartPopup();
         }
       });
@@ -652,7 +655,7 @@ if (checkoutBtn) {
         function updateCartCount() {
           const cartCountElem = document.getElementById('cart-count');
           if (cartCountElem) {
-            cartCountElem.textContent = getCart().reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElem.textContent = loadCart().reduce((sum, item) => sum + item.quantity, 0);
           }
         }
 
@@ -677,7 +680,7 @@ if (checkoutBtn) {
   document.addEventListener("click", function (e) {
     if (e.target && e.target.id === "checkout-btn") {
       // Always get the latest cart from localStorage
-      const cart = JSON.parse(localStorage.getItem('snack_cart') || '[]');
+      const cart = loadCart();
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
         const auth = getAuth();
         const user = auth.currentUser;
@@ -691,5 +694,24 @@ if (checkoutBtn) {
     }
   });
       </script>
+      <!-- Mobile Bottom Navigation (hidden on md and up) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
+  <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+    <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+  </a>
+  <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+    <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+  </a>
+  <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+    <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+  </a>
+  <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+    <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+  </a>
+</nav>
     </body>
   </html>

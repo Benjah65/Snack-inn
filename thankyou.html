@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Snack Inn | Order Summary</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="snackinn-firebase.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -37,25 +39,68 @@
     </div>
   </div>
 
-  <script>
-    const order = JSON.parse(localStorage.getItem("snack_last_order"));
-    if (order) {
-      document.getElementById("summary-name").textContent = order.name;
-      document.getElementById("summary-email").textContent = order.email;
-      document.getElementById("summary-phone").textContent = order.phone;
-      document.getElementById("summary-address").textContent = `${order.address.county}, ${order.address.town}, ${order.address.street}, ${order.address.house}`;
-      document.getElementById("summary-mpesa").textContent = order.mpesaCode;
-      document.getElementById("summary-total").textContent = `KSh ${order.total}`;
+<script>
+  const order = JSON.parse(localStorage.getItem("snack_last_order"));
 
-      const itemsList = document.getElementById("summary-items");
-      order.items.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.name} × ${item.quantity} = KSh ${item.price * item.quantity}`;
-        itemsList.appendChild(li);
-      });
-    } else {
-      document.getElementById("order-summary").innerHTML = "<p class='text-red-500 text-center'>No order summary found.</p>";
-    }
-  </script>
+  if (order) {
+    document.getElementById("summary-name").textContent = order.name;
+    document.getElementById("summary-email").textContent = order.email;
+    document.getElementById("summary-phone").textContent = order.phone;
+    document.getElementById("summary-address").textContent = `${order.address.county}, ${order.address.town}, ${order.address.street}, ${order.address.house}`;
+    document.getElementById("summary-mpesa").textContent = order.mpesaCode;
+
+    const itemsList = document.getElementById("summary-items");
+    let subtotal = 0;
+
+    order.items.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+
+      const li = document.createElement("li");
+      li.textContent = `${item.name} × ${item.quantity} = KSh ${itemTotal}`;
+      itemsList.appendChild(li);
+    });
+
+    // 💰 Calculate delivery, tax, and grand total
+    const deliveryFee = subtotal > 0 ? 200 : 0;
+    const tax = Math.round(subtotal * 0.16);
+    const grandTotal = subtotal + deliveryFee + tax;
+
+    // Replace total with breakdown
+    const summaryTotal = document.getElementById("summary-total");
+    summaryTotal.innerHTML = `
+      <div class="space-y-1">
+        <div class="flex justify-between"><span>Subtotal:</span> <span>KSh ${subtotal}</span></div>
+        <div class="flex justify-between"><span>🚚 Delivery:</span> <span>KSh ${deliveryFee}</span></div>
+        <div class="flex justify-between"><span>📄 Tax (16%):</span> <span>KSh ${tax}</span></div>
+        <div class="flex justify-between font-bold border-t pt-2"><span>Total:</span> <span class="text-green-600">KSh ${grandTotal}</span></div>
+      </div>
+    `;
+  } else {
+    document.getElementById("order-summary").innerHTML = "<p class='text-red-500 text-center'>No order summary found.</p>";
+  }
+</script>
+
+
+  <!-- Mobile Bottom Navigation (hidden on md and up) -->
+ <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
+    <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+      <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+    </a>
+    <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+      <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+    </a>
+    <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+      <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+    </a>
+    <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+      <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+    </a>
+  </nav>
+  <!-- End Mobile Bottom Navigation -->
 </body>
 </html>

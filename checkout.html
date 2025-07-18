@@ -4,8 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Snack Inn | Checkout</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script type="module" src="snackinn-firebase.js"></script>
+  <script type="module" src="cart-utils.js"></script>
+
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -23,7 +28,7 @@
 </head>
 <body class="text-gray-800">
 
-  <div class="max-w-3xl mx-auto p-6 mt-10 bg-white rounded-xl shadow-md">
+  <div class="max-w-3xl mx-auto p-6 mt-10 bg-white rounded-xl shadow-md pb-28">
     <h1 class="text-2xl font-bold text-orange-500 mb-6">Checkout</h1>
 
     <!-- Step 1: Customer Info -->
@@ -79,9 +84,11 @@
 
   <!-- ✅ SCRIPT LOGIC -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { loadCart, clearCart } from './cart-utils.js';
+    
+    // Firebase config (same as snackinn-firebase.js)
     const firebaseConfig = {
       apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
       authDomain: "snackinn-979a8.firebaseapp.com",
@@ -91,17 +98,21 @@
       appId: "1:929490643698:web:4d7a87897863c38f883e6b",
       measurementId: "G-54KKTHQYJQ"
     };
-
-    const app = initializeApp(firebaseConfig);
+    
+    let app;
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApp();
+    }
     const db = getFirestore(app);
 
     const user = JSON.parse(localStorage.getItem("snack_user"));
     const uid = user?.uid || null;
-    const cartKey = uid ? `snack_cart_${uid}` : "snack_cart";
-    const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    const cart = loadCart();
+
 
     const cartList = document.getElementById("checkout-cart");
-    const cartTotal = document.getElementById("checkout-total");
     const statusEl = document.getElementById("status");
     const confirmBtn = document.getElementById("confirm-order");
 
@@ -109,7 +120,7 @@
 
     if (cart.length === 0) {
       cartList.innerHTML = "<li>No items in your order.</li>";
-      cartTotal.textContent = "KSh 0";
+      
     } else {
       cart.forEach(item => {
         const li = document.createElement("li");
@@ -142,7 +153,9 @@ totalRow.innerHTML = `<span>Total:</span><span id="checkout-total" class="text-g
 cartList.appendChild(totalRow);
 
 // Store final total
+const order = {};
 order.total = grandTotal;
+total = grandTotal;
 
 
     function validateCheckoutForm() {
@@ -190,7 +203,7 @@ order.total = grandTotal;
         await addDoc(collection(db, "orders"), order);
 
         // ✅ EmailJS send
-        emailjs.init("Od9kXsPwKkwFghwue");
+        emailjs.init("Od9kXsPwKkwFghwue"); // <-- Replace with your actual EmailJS user ID from https://dashboard.emailjs.com/admin/integration
         await emailjs.send("service_u395zvd", "template_gd5clck", {
           name: order.name,
           email: order.email,
@@ -200,8 +213,10 @@ order.total = grandTotal;
           mpesa: order.mpesaCode
         });
 
+
         localStorage.setItem("snack_last_order", JSON.stringify(order));
-        localStorage.removeItem(cartKey);
+        clearCart();
+
 
         window.location.href = "thankyou.html";
       } catch (err) {
@@ -210,6 +225,25 @@ order.total = grandTotal;
       }
     });
   </script>
+  <!-- Mobile Bottom Navigation (hidden on md and up) -->
+  <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
+    <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+      <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+    </a>
+    <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+      <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+    </a>
+    <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+      <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+    </a>
+    <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+      <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+    </a>
+  </nav>
 </body>
 </html>
 <!-- This is the end of the checkout.html file. -->

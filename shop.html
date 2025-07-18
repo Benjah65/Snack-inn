@@ -4,8 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snack Inn - Shop</title>
+  <!-- Firebase SDKs (as modules, in order) -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <!-- Font Awesome -->
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  integrity="sha512-papjF+zVU6VZ7YUBWx1yUlZlGo92uZKoyrMQ9VzV+3StjzBzVRZ5Wfp7fIomFGgvUv9xkv+6I7p1lY0+uvm71w=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
   <style>
   html {
     scroll-behavior: smooth;
@@ -29,7 +42,9 @@
 <body class="bg-gray-50">
 <nav class="bg-white shadow fixed w-full z-50 top-0 left-0">
   <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center relative">
-    <a href="index.html" class="text-orange-500 font-bold text-xl">Snack Inn</a>
+    <a href="index.html" class="text-orange-500 font-bold text-xl flex items-center gap-2">
+      <i class="fas fa-utensils text-2xl"></i> Snack Inn
+    </a>
     <div class="flex items-center space-x-4">
       <a href="index.html" class="text-gray-700 hover:text-orange-500">Home</a>
       <a href="shop.html" class="text-gray-700 hover:text-orange-500">Shop</a>
@@ -79,6 +94,9 @@
         Don’t have an account?
         <a href="#" id="open-register-from-login" class="text-orange-500 hover:underline">Register here</a>
       </p>
+      <p class="text-sm text-center text-gray-600 mt-4">
+        <a href="forgot-password.html" id="forgot-password-link" class="text-orange-500 hover:underline">Forgot password?</a>
+      </p>
     </form>
   </div>
 </div>
@@ -107,14 +125,42 @@
 
 <!-- Firebase and SnackInn scripts -->
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<script type="module" src="snackinn-firebase.js"></script>
+ 
+<!-- Load snackinn-firebase.js as a module after Firebase SDKs -->
+<script type="module" src="./snackinn-firebase.js"></script>
+<!-- In your custom scripts, use window.snackLogin, window.logoutUser, etc. Do not use import/export or direct imports from snackinn-firebase.js. -->
 <script type="module">
-import { auth } from "./snackinn-firebase.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Uncomment if Firestore is needed
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
+    authDomain: "snackinn-979a8.firebaseapp.com",
+    projectId: "snackinn-979a8",
+    storageBucket: "snackinn-979a8.appspot.com",
+    messagingSenderId: "929490643698",
+    appId: "1:929490643698:web:4d7a87897863c38f883e6b",
+    measurementId: "G-54KKTHQYJQ"
+  };
+
+  let app;
+  try {
+    app = getApp();
+  } catch (e) {
+    app = initializeApp(firebaseConfig);
+  }
+
+  const auth = getAuth(app);
+  window.auth = auth;
+
+  // ✅ Then safely use auth here ↓
+  console.log("Firebase Auth is ready!", auth);
+// const db = getFirestore(app); // Uncomment if Firestore is needed
+
+// Now use 'auth' for all Firebase Auth operations
+// Example usage:
+// await signInWithEmailAndPassword(auth, email, password);
 
 const loginForm = document.getElementById("login-form");
 const loginModal = document.getElementById("login-modal");
@@ -175,7 +221,7 @@ function showUserStatus() {
       nav.innerHTML = `
         <div class="flex items-center space-x-4">
           <a href="dashboard.html" title="Dashboard">
-            <i class="fa fa-user-circle text-2xl text-orange-500 hover:text-orange-600"></i>
+            <i class="fa-solid fa-user-circle text-2xl text-orange-500 hover:text-orange-600"></i>
           </a>
           <span class="text-orange-500 font-semibold">Welcome, ${user.displayName || user.email}</span>
           <button id="logout-btn" class="text-red-500 font-semibold hover:underline">Logout</button>
@@ -223,7 +269,6 @@ showUserStatus(); // Always call it
 </script>
 
 <script type="module">
-import { auth } from "./snackinn-firebase.js";
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Swap between modals
@@ -301,36 +346,6 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
 
 
     <script>
-      let auth = null;
-      try {
-        auth = firebase.auth();
-      } catch (e) {
-        console.error("Firebase Auth not initialized. Ensure Firebase is properly configured.");
-      }
-      // Ensure Firebase Auth is initialized before using it
-      if (!auth) {
-        console.error("Firebase Auth is not available. Please check your Firebase configuration.");
-      } else {
-        auth.onAuthStateChanged(user => {
-          if (user) {
-            console.log("User is logged in:", user);
-          } else {
-            console.log("No user is logged in.");
-          }
-        });
-      } 
-      // Ensure Tailwind CSS is loaded
-      if (typeof tailwindcss === 'undefined') {
-        console.error("Tailwind CSS is not loaded. Please check your Tailwind CSS setup.");
-      } else {
-        tailwindcss.init();
-      }
-      // Ensure Font Awesome is loaded
-      if (typeof FontAwesome === 'undefined') {
-        console.error("Font Awesome is not loaded. Please check your Font Awesome setup.");
-      } else {
-        FontAwesome.load();
-      }
       // Ensure the DOM is fully loaded before running scripts
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
@@ -338,9 +353,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
         });
       } else {
         initShop();
-      } addEventListener('DOMContentLoaded', function() {
-        initShop();
-      }); 
+      } 
       function initShop() {
         // Initialize shop functionality here
         console.log("Shop initialized");
@@ -406,43 +419,14 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
       // Helper to get cart from localStorage
       // Ensure cart items have valid properties
       
-      function getCart() {
-        const cart = localStorage.getItem('snack_cart');
-        let parsed = [];
-        try {
-          parsed = cart ? JSON.parse(cart) : [];
-          // Ensure all items have valid properties
-          parsed = parsed.map(item => ({
-            id: typeof item.id === 'undefined' ? 0 : parseInt(item.id, 10),
-            name: item.name || 'Unknown',
-            price: isNaN(parseInt(item.price, 10)) ? 0 : parseInt(item.price, 10),
-            image: item.image || '',
-            quantity: isNaN(parseInt(item.quantity, 10)) || item.quantity < 1 ? 1 : parseInt(item.quantity, 10)
-          }));
-        } catch (e) {
-          parsed = [];
-        }
-        return parsed;
-      } 
-      function addToCart(id, name, price, image) {
-        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
-        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
-        name = name || 'Unknown';
-        image = image || '';
-        let cart = getCart();
-        const existing = cart.find(item => parseInt(item.id, 10) === id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({ id, name, price, image, quantity: 1 });
-        }
-        saveCart(cart);
-        showToast(`${name} (KSh ${price}) added to cart!`);
-      }
-  
+      // Remove all old cart logic and use the shared functions from cart-utils.js for all cart operations.
+      // For example, use loadCart(), addToCart(), removeFromCart(), clearCart() from cart-utils.js everywhere.
+      // Helper to get cart from localStorage
+      // Ensure cart items have valid properties
+      
       // Helper to update cart popup contents without closing/reopening
       function updateCartPopup() {
-        const cart = getCart();
+        const cart = loadCart();
         const cartItemsElem = document.getElementById('cart-items');
         if (!cartItemsElem) return;
         cartItemsElem.innerHTML = cart.length === 0
@@ -459,7 +443,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
             <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
             <span class="mx-1">${item.quantity}</span>
             <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
-            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa fa-trash"></i></button>
+            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
           `).join('');
@@ -470,27 +454,64 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
         }
       }
   
-      function saveCart(cart) {
-        localStorage.setItem('snack_cart', JSON.stringify(cart));
-        // Always update sessionStorage for checkout page access
-        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
-        document.dispatchEvent(new Event('cart-updated'));
+      // Helper to update cart popup contents without closing/reopening
+      function updateCartPopup() {
+        const cart = loadCart();
+        const cartItemsElem = document.getElementById('cart-items');
+        if (!cartItemsElem) return;
+        cartItemsElem.innerHTML = cart.length === 0
+        ? '<p class="text-gray-500 text-center">Your cart is empty.</p>'
+        : cart.map(item => `
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3 border" onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=No+Image';">
+            <div>
+          <div class="font-semibold">${item.name}</div>
+        </div>
+        </div>
+        <div class="flex items-center">
+            <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
+            <span class="mx-1">${item.quantity}</span>
+            <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
+            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          `).join('');
+        // Update total
+        const totalElem = cartItemsElem.parentElement.querySelector('.font-bold.text-orange-600');
+        if (totalElem) {
+          totalElem.textContent = `KSh ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}`;
+        }
       }
   
-      function addToCart(id, name, price, image) {
-        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
-        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
-        name = name || 'Unknown';
-        image = image || '';
-        let cart = getCart();
-        const existing = cart.find(item => parseInt(item.id, 10) === id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({ id, name, price, image, quantity: 1 });
+      // Helper to update cart popup contents without closing/reopening
+      function updateCartPopup() {
+        const cart = loadCart();
+        const cartItemsElem = document.getElementById('cart-items');
+        if (!cartItemsElem) return;
+        cartItemsElem.innerHTML = cart.length === 0
+        ? '<p class="text-gray-500 text-center">Your cart is empty.</p>'
+        : cart.map(item => `
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3 border" onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=No+Image';">
+            <div>
+          <div class="font-semibold">${item.name}</div>
+        </div>
+        </div>
+        <div class="flex items-center">
+            <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
+            <span class="mx-1">${item.quantity}</span>
+            <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
+            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          `).join('');
+        // Update total
+        const totalElem = cartItemsElem.parentElement.querySelector('.font-bold.text-orange-600');
+        if (totalElem) {
+          totalElem.textContent = `KSh ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}`;
         }
-        saveCart(cart);
-        showToast(`${name} (KSh ${price}) added to cart!`);
       }
   
       function showToast(message) {
@@ -505,14 +526,14 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
         let popup = document.getElementById('cart-popup');
         if (popup) popup.remove();
   
-        const cart = getCart();
+        const cart = loadCart();
         popup = document.createElement('div');
         popup.id = 'cart-popup';
         popup.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
         popup.innerHTML = `
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
           <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-400 hover:text-orange-500 text-2xl">&times;</button>
-          <h2 class="text-2xl font-bold mb-4 text-orange-500 flex items-center"><i class="fa fa-shopping-cart mr-2"></i>Cart</h2>
+          <h2 class="text-2xl font-bold mb-4 text-orange-500 flex items-center"><i class="fa-solid fa-shopping-cart mr-2"></i>Cart</h2>
           <div id="cart-items" class="mb-4 max-h-60 overflow-y-auto">
           ${cart.length === 0 ? '<p class="text-gray-500 text-center">Your cart is empty.</p>' : cart.map(item => `
             <div class="flex items-center justify-between mb-3">
@@ -525,7 +546,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
                 <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
                 <span class="mx-1">${item.quantity}</span>
                 <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
-                <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa fa-trash"></i></button>
+                <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>
               </div>
             </div>
           `).join('')}
@@ -550,7 +571,7 @@ if (checkoutBtn) {
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
       const auth = getAuth();
       const user = auth.currentUser;
-      const cart = getCart();
+      const cart = loadCart();
 
       if (user && user.uid) {
         localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
@@ -575,7 +596,7 @@ if (checkoutBtn) {
         if (cartItemsElem) {
           cartItemsElem.addEventListener('click', function(e) {
             const id = parseInt(e.target.getAttribute('data-id'), 10);
-            let cart = getCart();
+            let cart = loadCart();
             if (e.target.classList.contains('increase-qty')) {
               const item = cart.find(i => i.id === id);
               if (item) item.quantity += 1;
@@ -607,9 +628,13 @@ if (checkoutBtn) {
   const existingNav = document.getElementById('auth-nav');
   if (existingNav) existingNav.remove();
 
-  
+  const nav = document.getElementById("auth-nav");
+  if (!nav) {
+    console.warn('renderAuthNav: #auth-nav not found');
+    return;
+  }
 
-  const user = window.auth?.currentUser;
+  const user = auth?.currentUser;
 
   if (user) {
     // 👤 If logged in
@@ -628,13 +653,13 @@ if (checkoutBtn) {
       function renderCartIcon() {
         const existingIcon = document.querySelector('a#cart-icon');
         if (existingIcon) existingIcon.remove();
-        const cartCount = getCart().reduce((sum, item) => sum + item.quantity, 0);
+        const cartCount = loadCart().reduce((sum, item) => sum + item.quantity, 0);
         const cartIcon = document.createElement('a');
         cartIcon.id = "cart-icon";
         cartIcon.href = "#";
         cartIcon.className = "fixed top-[90px] right-6 z-40 flex items-center bg-white shadow-lg rounded-full px-4 py-2 hover:bg-orange-100 transition";
         cartIcon.innerHTML = `
-        <i class="fa fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
+        <i class="fa-solid fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
         <span id="cart-count" class="font-bold text-orange-600">${cartCount}</span>
         `;
         cartIcon.addEventListener('click', function(e) {
@@ -652,7 +677,7 @@ if (checkoutBtn) {
         if (existingPopup) {
             existingPopup.remove();
             // Save cart to sessionStorage before redirecting to checkout
-            sessionStorage.setItem('checkout_cart', JSON.stringify(getCart()));
+            sessionStorage.setItem('checkout_cart', JSON.stringify(loadCart()));
           showCartPopup();
         }
       });
@@ -660,7 +685,7 @@ if (checkoutBtn) {
         function updateCartCount() {
           const cartCountElem = document.getElementById('cart-count');
           if (cartCountElem) {
-            cartCountElem.textContent = getCart().reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElem.textContent = loadCart().reduce((sum, item) => sum + item.quantity, 0);
           }
         }
 
@@ -685,7 +710,7 @@ if (checkoutBtn) {
   document.addEventListener("click", function (e) {
     if (e.target && e.target.id === "checkout-btn") {
       // Always get the latest cart from localStorage
-      const cart = JSON.parse(localStorage.getItem('snack_cart') || '[]');
+      const cart = loadCart();
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
         const auth = getAuth();
         const user = auth.currentUser;
@@ -699,5 +724,25 @@ if (checkoutBtn) {
     }
   });
       </script>
+<!-- Mobile Bottom Navigation (hidden on md and up) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
+  <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+    <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+  </a>
+  <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+    <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+  </a>
+  <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+    <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+  </a>
+  <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+    <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+  </a>
+</nav>
+<!-- End Mobile Bottom Navigation -->
     </body>
   </html>

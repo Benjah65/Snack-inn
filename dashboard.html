@@ -144,58 +144,63 @@
     <div id="sidebarBackdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden transition-opacity duration-300"></div>
     <!-- Main -->
     <main class="flex-1 md:ml-64 p-4 pt-16">
-      <h1 class="text-4xl font-bold accent mb-8 text-center">Your Dashboard</h1>
-      <div class="main-card rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-2xl mx-auto">
-        <!-- Profile Section -->
-        <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
-          <div class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center accent text-3xl border-4 border-accent">
-            <i class="fas fa-user-circle"></i>
+      <div id="login-required" class="hidden max-w-xl mx-auto mt-12 p-6 bg-red-50 border border-red-200 rounded-xl text-center text-red-600 text-lg font-semibold">
+        🚫 You must be logged in to view your dashboard.
+      </div>
+      <div id="dashboard-content">
+        <h1 class="text-4xl font-bold accent mb-8 text-center">Your Dashboard</h1>
+        <div class="main-card rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-2xl mx-auto">
+          <!-- Profile Section -->
+          <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
+            <div class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center accent text-3xl border-4 border-accent">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="text-center sm:text-left">
+              <h2 id="user-name" class="text-xl font-semibold">User Name</h2>
+              <p id="user-email" class="text-gray-600 dark:text-gray-300 text-sm">user@email.com</p>
+              <p id="user-extra" class="text-gray-500 dark:text-gray-400 text-xs mt-1">@username | Location | Phone</p>
+            </div>
           </div>
-          <div class="text-center sm:text-left">
-            <h2 id="user-name" class="text-xl font-semibold">User Name</h2>
-            <p id="user-email" class="text-gray-600 dark:text-gray-300 text-sm">user@email.com</p>
-            <p id="user-extra" class="text-gray-500 dark:text-gray-400 text-xs mt-1">@username | Location | Phone</p>
+          <!-- Editable Fields -->
+          <div class="space-y-4 mb-8" id="profile-fields">
+            <input id="display-name-input" type="text" placeholder="New Display Name" class="w-full px-4 py-2 rounded border" />
+            <input id="phone-number" type="tel" placeholder="Phone Number" class="w-full px-4 py-2 rounded border" />
+            <input id="user-location" type="text" placeholder="Location / Address" class="w-full px-4 py-2 rounded border" />
+            <input id="username" type="text" placeholder="Username (e.g. @dummy_vibes)" class="w-full px-4 py-2 rounded border" />
+            <select id="language" class="w-full px-4 py-2 rounded border">
+              <option value="">Preferred Language</option>
+              <option value="english">English</option>
+              <option value="swahili">Swahili</option>
+              <option value="korean">Korean</option>
+            </select>
+            <input id="fav-snack" type="text" placeholder="Favorite Snack" class="w-full px-4 py-2 rounded border" />
+            <input id="allergies" type="text" placeholder="Any Allergies?" class="w-full px-4 py-2 rounded border" />
+            <input id="delivery-time" type="text" placeholder="Preferred Delivery Time" class="w-full px-4 py-2 rounded border" />
+            <textarea id="user-notes" class="w-full border p-2 rounded" placeholder="Any special instructions or notes?"></textarea>
+            <button id="update-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Update Profile</button>
           </div>
-        </div>
-        <!-- Editable Fields -->
-        <div class="space-y-4 mb-8" id="profile-fields">
-          <input id="display-name-input" type="text" placeholder="New Display Name" class="w-full px-4 py-2 rounded border" />
-          <input id="phone-number" type="tel" placeholder="Phone Number" class="w-full px-4 py-2 rounded border" />
-          <input id="user-location" type="text" placeholder="Location / Address" class="w-full px-4 py-2 rounded border" />
-          <input id="username" type="text" placeholder="Username (e.g. @dummy_vibes)" class="w-full px-4 py-2 rounded border" />
-          <select id="language" class="w-full px-4 py-2 rounded border">
-            <option value="">Preferred Language</option>
-            <option value="english">English</option>
-            <option value="swahili">Swahili</option>
-            <option value="korean">Korean</option>
-          </select>
-          <input id="fav-snack" type="text" placeholder="Favorite Snack" class="w-full px-4 py-2 rounded border" />
-          <input id="allergies" type="text" placeholder="Any Allergies?" class="w-full px-4 py-2 rounded border" />
-          <input id="delivery-time" type="text" placeholder="Preferred Delivery Time" class="w-full px-4 py-2 rounded border" />
-          <textarea id="user-notes" class="w-full border p-2 rounded" placeholder="Any special instructions or notes?"></textarea>
-          <button id="update-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Update Profile</button>
-        </div>
-        <!-- Orders -->
-        <div class="mt-4">
-          <h3 class="text-lg font-bold accent mb-3">Order History</h3>
-          <ul id="order-history" class="space-y-3 text-sm">
-            <li class="border rounded-lg p-3">No orders yet...</li>
-          </ul>
-          <div class="mt-4 flex flex-col sm:flex-row gap-4 justify-between">
-            <button id="submit-order" class="btn-accent px-4 py-2 rounded text-sm w-full sm:w-auto">Submit Order</button>
-            <button id="clear-cart" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm w-full sm:w-auto">Clear All</button>
+          <!-- Orders -->
+          <div class="mt-4">
+            <h3 class="text-lg font-bold accent mb-3">Order History</h3>
+            <ul id="order-history" class="space-y-3 text-sm">
+              <li class="border rounded-lg p-3">No orders yet...</li>
+            </ul>
+            <div class="mt-4 flex flex-col sm:flex-row gap-4 justify-between">
+              <button id="submit-order" class="btn-accent px-4 py-2 rounded text-sm w-full sm:w-auto">Submit Order</button>
+              <button id="clear-cart" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm w-full sm:w-auto">Clear All</button>
+            </div>
           </div>
-        </div>
-        <!-- Review -->
-        <div class="mt-6">
-          <h3 class="text-lg font-bold accent mb-3">Leave a Review</h3>
-          <textarea id="feedback" placeholder="Type your feedback..." class="w-full p-2 border rounded"></textarea>
-          <button id="submit-feedback" class="btn-accent px-4 py-2 mt-2 rounded w-full text-sm">Submit Review</button>
-        </div>
-        <!-- Actions -->
-        <div class="mt-6 space-y-3">
-          <button id="reset-password" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm w-full">Reset Password</button>
-          <button id="edit-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Edit Profile</button>
+          <!-- Review -->
+          <div class="mt-6">
+            <h3 class="text-lg font-bold accent mb-3">Leave a Review</h3>
+            <textarea id="feedback" placeholder="Type your feedback..." class="w-full p-2 border rounded"></textarea>
+            <button id="submit-feedback" class="btn-accent px-4 py-2 mt-2 rounded w-full text-sm">Submit Review</button>
+          </div>
+          <!-- Actions -->
+          <div class="mt-6 space-y-3">
+            <button id="reset-password" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm w-full">Reset Password</button>
+            <button id="edit-profile" class="btn-accent px-4 py-2 rounded w-full text-sm">Edit Profile</button>
+          </div>
         </div>
       </div>
     </main>
@@ -238,26 +243,75 @@
       </form>
     </div>
   </div>
+  <!-- Mobile Bottom Navigation (hidden on md and up) -->
+  <nav id="mobile-bottom-nav" class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins transition-transform duration-300">
+    <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+      <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+    </a>
+    <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+      <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+    </a>
+    <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+      <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+    </a>
+    <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+      <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+      <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+    </a>
+  </nav>
+  <!-- End Mobile Bottom Navigation -->
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+  <script>
+  // Scroll feedback for mobile bottom nav
+  (function() {
+    var lastScrollY = window.scrollY;
+    var nav = document.getElementById('mobile-bottom-nav');
+    if (!nav) return;
+    var ticking = false;
+    function onScroll() {
+      if (window.innerWidth >= 768) return;
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          var currentScrollY = window.scrollY;
+          if (currentScrollY > lastScrollY + 10) {
+            nav.style.transform = 'translateY(100%)';
+          } else if (currentScrollY < lastScrollY - 10) {
+            nav.style.transform = 'translateY(0)';
+          }
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+  AOS.init({ duration: 600, once: true, easing: 'ease-out-cubic' });
+  </script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut,
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut,
       updateProfile,
       sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    const firebaseConfig = {
-      apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
-      authDomain: "snackinn-979a8.firebaseapp.com",
-      projectId: "snackinn-979a8",
-      storageBucket: "snackinn-979a8.appspot.com",
-      messagingSenderId: "929490643698",
-      appId: "1:929490643698:web:4d7a87897863c38f883e6b",
-      measurementId: "G-54KKTHQYJQ"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDh1oEETtqBF6CxzJzAGJKP7TttLRIFlEg",
+    authDomain: "snackinn-979a8.firebaseapp.com",
+    projectId: "snackinn-979a8",
+    storageBucket: "snackinn-979a8.appspot.com",
+    messagingSenderId: "929490643698",
+    appId: "1:929490643698:web:4d7a87897863c38f883e6b",
+    measurementId: "G-54KKTHQYJQ"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
     // --- Toast ---
     function showToast(message) {
@@ -343,7 +397,7 @@
 
     // --- Order History ---
     function loadOrderHistory(uid) {
-      const orderList = document.getElementById("order-history");
+    const orderList = document.getElementById("order-history");
       if (!orderList) return;
       let cartData = [];
       if (uid) {
@@ -355,25 +409,25 @@
       } else {
         cartData = JSON.parse(localStorage.getItem('snack_cart')) || [];
       }
-      if (cartData.length > 0) {
-        orderList.innerHTML = "";
-        cartData.forEach((item, index) => {
-          const li = document.createElement("li");
+    if (cartData.length > 0) {
+      orderList.innerHTML = "";
+      cartData.forEach((item, index) => {
+        const li = document.createElement("li");
           li.className = "border rounded-lg p-3";
-          li.innerHTML = `
-            <div class="flex justify-between items-center">
-              <span>Item ${index + 1} - ${item.name}</span>
+        li.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span>Item ${index + 1} - ${item.name}</span>
               <button class="toggle-details text-sm accent">View</button>
-            </div>
-            <div class="order-details mt-2 hidden">
-              <p>Quantity: ${item.quantity}</p>
-              <p>Price: KSh ${item.price}</p>
+          </div>
+          <div class="order-details mt-2 hidden">
+            <p>Quantity: ${item.quantity}</p>
+            <p>Price: KSh ${item.price}</p>
               <p>Total: <span class='accent font-semibold'>KSh ${item.quantity * item.price}</span></p>
-            </div>
-          `;
-          orderList.appendChild(li);
-        });
-      } else {
+          </div>
+        `;
+        orderList.appendChild(li);
+      });
+    } else {
         orderList.innerHTML = `<li class="border rounded-lg p-3">No orders yet...</li>`;
       }
     }
@@ -401,35 +455,25 @@
       // Auth state
       onAuthStateChanged(auth, (user) => {
         if (!user) {
-          window.location.href = "index.html";
-          return;
+          // Not logged in: show message, hide dashboard, show login modal
+          const dashboardContent = document.getElementById("dashboard-content");
+          const loginRequired = document.getElementById("login-required");
+          const loginModal = document.getElementById("login-modal");
+          if (dashboardContent) dashboardContent.classList.add("hidden");
+          if (loginRequired) loginRequired.classList.remove("hidden");
+          if (loginModal) loginModal.classList.remove("hidden");
+        } else {
+          // Logged in: show dashboard, hide message
+          const dashboardContent = document.getElementById("dashboard-content");
+          const loginRequired = document.getElementById("login-required");
+          const loginModal = document.getElementById("login-modal");
+          if (dashboardContent) dashboardContent.classList.remove("hidden");
+          if (loginRequired) loginRequired.classList.add("hidden");
+          if (loginModal) loginModal.classList.add("hidden");
         }
-        // Profile info
-        document.getElementById("user-name").textContent = user.displayName || "Anonymous";
-        document.getElementById("user-email").textContent = user.email;
-        loadProfileInfo(user.uid);
-        loadSettings(user.uid);
-        // Profile fields open on first load
-        document.getElementById("profile-fields").classList.remove("hidden");
-        // Load order history ONLY after user is confirmed
-        loadOrderHistory(user.uid);
-
-        // Submit Order
-        document.getElementById("submit-order").addEventListener("click", () => {
-          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify([]));
-          loadOrderHistory(user.uid);
-          showToast("✅ Order submitted and cart cleared!");
-        });
-
-        // Clear Cart
-        document.getElementById("clear-cart").addEventListener("click", () => {
-          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify([]));
-          loadOrderHistory(user.uid);
-          showToast("🗑️ Cart cleared!");
-        });
       });
 
-      // Logout
+  // Logout
       document.getElementById("logout-btn").addEventListener("click", () => {
         const user = auth.currentUser;
         if (!user) return showToast("⛔ No user logged in.");
@@ -448,10 +492,10 @@
         showToast(newTheme === "dark" ? "🌙 Dark mode enabled" : "☀️ Light mode enabled");
       });
 
-      // Reset Password
-      document.getElementById("reset-password").addEventListener("click", () => {
-        const user = auth.currentUser;
-        if (!user) return showToast("⛔ No user logged in");
+  // Reset Password
+  document.getElementById("reset-password").addEventListener("click", () => {
+    const user = auth.currentUser;
+    if (!user) return showToast("⛔ No user logged in");
         sendPasswordResetEmail(auth, user.email)
           .then(() => showToast("✅ Password reset email sent!"))
           .catch(() => showToast("❌ Failed to send reset email."));
@@ -490,7 +534,7 @@
       // Sidebar modal links
       document.getElementById("orders-link").addEventListener("click", (e) => {
         e.preventDefault();
-        const user = auth.currentUser;
+    const user = auth.currentUser;
         if (user) {
           const cartData = JSON.parse(localStorage.getItem(`snack_cart_${user.uid}`)) || [];
           let html = "";
@@ -528,13 +572,13 @@
       });
 
       // Order dropdown toggle
-      document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('toggle-details')) {
-          const details = e.target.closest('li').querySelector('.order-details');
-          details.classList.toggle('hidden');
-          e.target.textContent = details.classList.contains('hidden') ? 'View' : 'Hide';
-        }
-      });
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('toggle-details')) {
+        const details = e.target.closest('li').querySelector('.order-details');
+        details.classList.toggle('hidden');
+        e.target.textContent = details.classList.contains('hidden') ? 'View' : 'Hide';
+      }
+    });
     });
   </script>
 </body>

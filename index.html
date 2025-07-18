@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Chewy&display=swap" rel="stylesheet">
+    <script type="module" src="snackinn-firebase.js"></script>
+    <script type="module" src="cart-utils.js"></script>
 
     <style>
         :root {
@@ -97,11 +99,10 @@
     <div class="flex justify-between items-center py-4">
       <!-- Logo -->
       <div class="flex items-center space-x-2">
-      <div class="text-3xl text-orange-500">
-        <i class="fas fa-pizza-slice"></i>
-        <!-- Removed invalid icons fa-donut and fa-hat-chef -->
-      </div>
-      <a href="#" class="logo-font text-3xl text-orange-500" aria-label="Snack Inn Home">Snack Inn</a>
+        <div class="text-3xl text-orange-500">
+          <i class="fas fa-pizza-slice"></i>
+        </div>
+        <a href="#" class="logo-font text-3xl text-orange-500" aria-label="Snack Inn Home">Snack Inn</a>
       </div>
       <!-- Mobile menu button -->
       <div class="md:hidden">
@@ -118,15 +119,10 @@
         <a href="#about" class="text-gray-700 hover:text-orange-500">About Us</a>
         <a href="#contact" class="text-gray-700 hover:text-orange-500">Contact</a>
         <a href="dashboard.html" id="user-welcome" class="hidden text-orange-500 font-semibold hover:underline"></a>
-        <div class="flex items-center space-x-4">
-  <button id="login-btn" class="px-4 py-2 text-orange-500 border border-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition">
-    Login
-  </button>
-  
-</div>
+        <button id="login-btn" class="px-4 py-2 text-orange-500 border border-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition">Login</button>
         <button id="cart-btn" type="button" class="relative text-gray-700 hover:text-orange-500" aria-label="View cart">
-            <i class="fas fa-shopping-cart text-2xl"></i>
-            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">0</span>
+          <i class="fas fa-shopping-cart text-2xl"></i>
+          <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">0</span>
         </button>
       </div>
     </div>
@@ -200,7 +196,7 @@
           <i class="fas fa-user-plus mr-2"></i> Register
         </button>
         <!-- Logout Button (when logged in) -->
-        <button id="mobile-logout-btn" onclick="logoutUser()"
+        <button id="mobile-logout-btn"
           class="hidden w-full flex items-center justify-center py-3 px-4 mt-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all duration-200">
           <i class="fas fa-sign-out-alt mr-2"></i> Logout
         </button>
@@ -1168,15 +1164,17 @@
           <i class="fas fa-times"></i>
         </button>
       </div>
-
       <form id="login-form">
         <div class="mb-4">
           <label for="login-email" class="block text-gray-700 font-medium mb-2">Email</label>
           <input type="email" id="login-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
         </div>
-        <div class="mb-4">
+        <div class="mb-4 relative">
           <label for="login-password" class="block text-gray-700 font-medium mb-2">Password</label>
-          <input type="password" id="login-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+          <input type="password" id="login-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10" required />
+          <button type="button" aria-label="Show password" onclick="togglePassword('login-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
 
         <div class="flex justify-between items-center mb-6">
@@ -1184,7 +1182,7 @@
                             <input type="checkbox" id="remember-me" class="mr-2">
                             <label for="remember-me" class="text-sm text-gray-600">Remember me</label>
                         </div>
-                        <a href="#" id="forgot-password-link" class="text-sm text-orange-500 hover:underline">Forgot password?</a>
+                        <a href="forgot-password.html" id="forgot-password-link" class="text-sm text-orange-500 hover:underline">Forgot password?</a>
                     </div>
 
         <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition mb-4">Login</button>
@@ -1248,13 +1246,19 @@
           <label for="register-phone" class="block text-gray-700 font-medium mb-2">Phone Number</label>
           <input type="tel" id="register-phone" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
         </div>
-        <div class="mb-4">
+        <div class="mb-4 relative">
           <label for="register-password" class="block text-gray-700 font-medium mb-2">Password</label>
-          <input type="password" id="register-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+          <input type="password" id="register-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10" required />
+          <button type="button" aria-label="Show password" onclick="togglePassword('register-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
-        <div class="mb-6">
+        <div class="mb-6 relative">
           <label for="register-confirm" class="block text-gray-700 font-medium mb-2">Confirm Password</label>
-          <input type="password" id="register-confirm" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+          <input type="password" id="register-confirm" class="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10" required />
+          <button type="button" aria-label="Show password" onclick="togglePassword('register-confirm', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
 
         <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition mb-4">Register</button>
@@ -2416,6 +2420,88 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 </script>
 
+<!-- Mobile Bottom Navigation (hidden on md and up) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
+  <a href="index.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Home">
+    <i class="fas fa-home text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Home</span>
+  </a>
+  <a href="recipes.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Recipes">
+    <i class="fas fa-utensils text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Recipes</span>
+  </a>
+  <a href="shop.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Shop">
+    <i class="fas fa-shopping-cart text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Shop</span>
+  </a>
+  <a href="dashboard.html" class="flex flex-col items-center w-full min-h-[48px] transition active:scale-95 group" aria-label="Profile">
+    <i class="fas fa-user text-xl group-[.active]:text-orange-500"></i>
+    <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
+  </a>
+</nav>
+<!-- End Mobile Bottom Navigation -->
 
+<script type="module">
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth } from "./snackinn-firebase.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const welcomeText = document.getElementById("user-welcome");
+  const loginBtn = document.getElementById("login-btn");
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      welcomeText.textContent = `Welcome, ${user.displayName || (user.email ? user.email.split('@')[0] : 'User')}`;
+      welcomeText.classList.remove("hidden");
+      loginBtn.classList.add("hidden");
+    } else {
+      welcomeText.classList.add("hidden");
+      loginBtn.classList.remove("hidden");
+    }
+  });
+
+  loginBtn?.addEventListener("click", () => {
+    const modal = document.getElementById("login-modal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+  });
+
+  const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
+  onAuthStateChanged(auth, (user) => {
+    if (mobileLogoutBtn) {
+      if (user) {
+        mobileLogoutBtn.classList.remove("hidden");
+      } else {
+        mobileLogoutBtn.classList.add("hidden");
+      }
+    }
+  });
+  mobileLogoutBtn?.addEventListener("click", () => {
+    if (typeof logoutUser === "function") logoutUser();
+  });
+});
+</script>
+
+<!-- GLOBAL TOGGLE PASSWORD FUNCTION -->
+<script>
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+  } else {
+    input.type = "password";
+    btn.innerHTML = '<i class="fas fa-eye"></i>';
+  }
+}
+</script>
+<script type="module" src="./functions/snackinn-firebase.js"></script>
+<script type="module">
+  import { logoutUser } from './functions/snackinn-firebase.js';
+  document.getElementById('mobile-logout-btn')?.addEventListener('click', logoutUser);
+</script>
 </body>
 </html>

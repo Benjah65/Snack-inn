@@ -152,8 +152,12 @@
         <div class="main-card rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-2xl mx-auto">
           <!-- Profile Section -->
           <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
-            <div class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center accent text-3xl border-4 border-accent">
-              <i class="fas fa-user-circle"></i>
+            <div class="relative w-24 h-24 flex flex-col items-center justify-center">
+              <img id="profile-pic-img" src="https://ui-avatars.com/api/?name=User" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-accent object-cover bg-accent/10" />
+              <label for="profile-pic-upload" class="absolute bottom-0 right-0 bg-accent text-white rounded-full p-1 cursor-pointer shadow-lg" title="Upload profile picture">
+                <i class="fas fa-camera"></i>
+                <input id="profile-pic-upload" type="file" accept="image/*" class="hidden" />
+              </label>
             </div>
             <div class="text-center sm:text-left">
               <h2 id="user-name" class="text-xl font-semibold">User Name</h2>
@@ -331,8 +335,10 @@
     function applyTheme(theme) {
       if (theme === "dark") {
         document.body.classList.add("theme-dark");
+        document.getElementById('mobile-bottom-nav')?.classList.add('theme-dark');
       } else {
         document.body.classList.remove("theme-dark");
+        document.getElementById('mobile-bottom-nav')?.classList.remove('theme-dark');
       }
     }
     function persistTheme(theme) {
@@ -436,6 +442,13 @@
     window.addEventListener("DOMContentLoaded", () => {
       // Theme on load
       applyTheme(getSavedTheme());
+      // --- Profile fields visibility on load ---
+      const profileFields = document.getElementById("profile-fields");
+      if (localStorage.getItem("profile_fields_visible") === "true") {
+        profileFields.classList.remove("hidden");
+      } else {
+        profileFields.classList.add("hidden");
+      }
 
       // Sidebar mobile toggle
       const sidebarToggle = document.getElementById('sidebarToggle');
@@ -470,6 +483,18 @@
           if (dashboardContent) dashboardContent.classList.remove("hidden");
           if (loginRequired) loginRequired.classList.add("hidden");
           if (loginModal) loginModal.classList.add("hidden");
+          // --- FIX: Load user data and set email ---
+          loadProfileInfo(user.uid);
+          loadOrderHistory(user.uid);
+          const userEmailElem = document.getElementById("user-email");
+          if (userEmailElem) userEmailElem.textContent = user.email || "";
+          // Load profile picture if exists
+          const profilePic = document.getElementById('profile-pic-img');
+          if (profilePic) {
+            const picUrl = localStorage.getItem(`user_profile_pic_${user.uid}`);
+            if (picUrl) profilePic.src = picUrl;
+            else profilePic.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email || 'User');
+          }
         }
       });
 
@@ -521,6 +546,9 @@
             await updateProfile(user, { displayName: newName });
           }
           saveProfileInfo(user.uid);
+          // Hide profile fields after update and persist state
+          document.getElementById("profile-fields").classList.add("hidden");
+          localStorage.setItem("profile_fields_visible", "false");
         } catch (err) {
           showToast("❌ Failed to update profile.");
         }
@@ -529,26 +557,38 @@
       // Edit Profile toggle
       document.getElementById("edit-profile").addEventListener("click", () => {
         document.getElementById("profile-fields").classList.toggle("hidden");
+        // Optionally focus the first input
+        document.getElementById("display-name-input").focus();
+        // Persist visibility state
+        const isVisible = !document.getElementById("profile-fields").classList.contains("hidden");
+        localStorage.setItem("profile_fields_visible", isVisible ? "true" : "false");
       });
 
       // Sidebar modal links
       document.getElementById("orders-link").addEventListener("click", (e) => {
         e.preventDefault();
-    const user = auth.currentUser;
+        const user = auth.currentUser;
+        // Use the same order history rendering as dashboard
+        let cartData = [];
         if (user) {
-          const cartData = JSON.parse(localStorage.getItem(`snack_cart_${user.uid}`)) || [];
-          let html = "";
-          if (cartData.length === 0) {
-            html = "<p>No orders yet.</p>";
-          } else {
-            html = "<ul class='space-y-2'>";
-            cartData.forEach((item, i) => {
-              html += `<li class='border rounded p-2'>${item.name} x${item.quantity} - KSh ${item.price * item.quantity}</li>`;
-            });
-            html += "</ul>";
+          cartData = JSON.parse(localStorage.getItem(`snack_cart_${user.uid}`)) || [];
+          if (!cartData || cartData.length === 0) {
+            cartData = JSON.parse(localStorage.getItem('snack_cart')) || [];
           }
-          document.getElementById("orders-modal-content").innerHTML = html;
+        } else {
+          cartData = JSON.parse(localStorage.getItem('snack_cart')) || [];
         }
+        let html = "";
+        if (cartData.length === 0) {
+          html = "<p>No orders yet.</p>";
+        } else {
+          html = "<ul class='space-y-2'>";
+          cartData.forEach((item, i) => {
+            html += `<li class='border rounded p-2'><div class='flex justify-between items-center'><span>Item ${i + 1} - ${item.name}</span></div><div class='order-details mt-2'><p>Quantity: ${item.quantity}</p><p>Price: KSh ${item.price}</p><p>Total: <span class='accent font-semibold'>KSh ${item.quantity * item.price}</span></p></div></li>`;
+          });
+          html += "</ul>";
+        }
+        document.getElementById("orders-modal-content").innerHTML = html;
         document.getElementById("orders-modal").classList.remove("hidden");
       });
       document.getElementById("settings-link").addEventListener("click", (e) => {
@@ -579,6 +619,62 @@
         e.target.textContent = details.classList.contains('hidden') ? 'View' : 'Hide';
       }
     });
+    // Submit Order (prevent error if clicked)
+    const submitOrderBtn = document.getElementById("submit-order");
+    if (submitOrderBtn) {
+      submitOrderBtn.addEventListener("click", () => {
+        showToast("🛒 Order submission coming soon!");
+      });
+    }
+    // Clear All (prevent error if clicked)
+    const clearCartBtn = document.getElementById("clear-cart");
+    if (clearCartBtn) {
+      clearCartBtn.addEventListener("click", () => {
+        const user = auth.currentUser;
+        if (user) {
+          localStorage.removeItem(`snack_cart_${user.uid}`);
+          loadOrderHistory(user.uid);
+          showToast("🧹 Cart cleared!");
+        } else {
+          localStorage.removeItem('snack_cart');
+          loadOrderHistory();
+          showToast("🧹 Cart cleared!");
+        }
+      });
+    }
+    // --- Profile Picture Upload ---
+    document.getElementById('profile-pic-upload').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const user = auth.currentUser;
+        if (!user) return showToast("⛔ No user logged in");
+        const imgUrl = evt.target.result;
+        document.getElementById('profile-pic-img').src = imgUrl;
+        localStorage.setItem(`user_profile_pic_${user.uid}`, imgUrl);
+        showToast("✅ Profile picture updated!");
+      };
+      reader.readAsDataURL(file);
+    });
+    // --- Top nav profile picture (replace welcome text) ---
+    // Try to find a top nav element for user welcome
+    const userWelcome = document.getElementById("user-welcome");
+    if (userWelcome) {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const picUrl = localStorage.getItem(`user_profile_pic_${user.uid}`);
+          if (picUrl) {
+            userWelcome.innerHTML = `<img src="${picUrl}" alt="Profile" class="inline w-8 h-8 rounded-full object-cover border-2 border-orange-500 align-middle" style="vertical-align:middle;" />`;
+          } else {
+            userWelcome.textContent = `Welcome, ${user.displayName || user.email}`;
+          }
+          userWelcome.classList.remove("hidden");
+        } else {
+          userWelcome.classList.add("hidden");
+        }
+      });
+    }
     });
   </script>
 </body>

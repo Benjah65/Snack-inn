@@ -50,18 +50,28 @@
       <a href="shop.html" class="text-gray-700 hover:text-orange-500">Shop</a>
       <a href="index.html#about" class="text-gray-700 hover:text-orange-500">About Us</a>
       <a href="index.html#contact" class="text-gray-700 hover:text-orange-500">Contact</a>
+      <a id="cart-icon" href="#" class="relative text-orange-500 hover:text-orange-600">
+        <i class="fa fa-shopping-cart text-2xl"></i>
+        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">0</span>
+      </a>
     </div>
-
-
   </div>
 </nav>
-
-<!-- Cart Icon (floating) -->
-<!-- <a id="cart-icon" href="#" -->
-  <!-- class="absolute right-4 top-[72px] bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition z-40 flex items-center shadow-lg"> -->
-  <!-- <i class="fa fa-shopping-cart mr-2"></i> -->
-  <!-- <span id="cart-count" class="font-bold">0</span> -->
-<!-- </a> -->
+<!-- Cart Popup (desktop & mobile, unified) -->
+<div id="cart-popup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg relative shadow-2xl max-h-[80vh] overflow-y-auto">
+    <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl">&times;</button>
+    <h3 class="text-2xl font-bold mb-4">Your Cart</h3>
+    <div class="cart-items space-y-4"></div>
+    <div class="mt-6 border-t pt-4 flex justify-between items-center">
+      <span class="text-lg font-semibold">Total: <span class="cart-total">KSh 0</span></span>
+      <div class="flex gap-2">
+        <button id="checkout-btn-popup" class="bg-green-600 text-white px-4 py-2 rounded">Checkout</button>
+        <button onclick="clearCart()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear All</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <div class="pt-16">
@@ -192,7 +202,7 @@ if (loginForm) {
 
      // 🔥 Close cart popup if it's open
       const cartPopup = document.getElementById("cart-popup");
-      if (cartPopup) cartPopup.remove();
+      if (cartPopup) cartPopup.classList.add("hidden");
 
       if (window.showUserStatus) showUserStatus();
     } catch (err) {
@@ -585,7 +595,7 @@ if (checkoutBtn) {
 
         // ✅ Close cart popup if it's open
         const cartPopup = document.getElementById("cart-popup");
-        if (cartPopup) cartPopup.remove();
+        if (cartPopup) cartPopup.classList.add("hidden");
       }
     });
   });
@@ -595,28 +605,28 @@ if (checkoutBtn) {
         const cartItemsElem = popup.querySelector('#cart-items');
         if (cartItemsElem) {
           cartItemsElem.addEventListener('click', function(e) {
-            const id = parseInt(e.target.getAttribute('data-id'), 10);
+            const id = e.target.getAttribute('data-id');
             let cart = loadCart();
             if (e.target.classList.contains('increase-qty')) {
-              const item = cart.find(i => i.id === id);
+              const item = cart.find(i => String(i.id) === String(id));
               if (item) item.quantity += 1;
               saveCart(cart);
               showCartPopup();
             }
             if (e.target.classList.contains('decrease-qty')) {
-              const item = cart.find(i => i.id === id);
+              const item = cart.find(i => String(i.id) === String(id));
               if (item && item.quantity > 1) {
-          item.quantity -= 1;
-            saveCart(cart);
-          showCartPopup();
+                item.quantity -= 1;
+                saveCart(cart);
+                showCartPopup();
               } else if (item && item.quantity === 1) {
-          cart = cart.filter(i => i.id !== id);
-          saveCart(cart);
-          showCartPopup();
+                cart = cart.filter(i => String(i.id) !== String(id));
+                saveCart(cart);
+                showCartPopup();
               }
             }
             if (e.target.classList.contains('remove-item')) {
-              cart = cart.filter(i => i.id !== id);
+              cart = cart.filter(i => String(i.id) !== String(id));
               saveCart(cart);
               showCartPopup();
             }
@@ -744,5 +754,18 @@ if (checkoutBtn) {
   </a>
 </nav>
 <!-- End Mobile Bottom Navigation -->
+<script type="module">
+  import { initCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
+  initCart();
+  // Use addToCart, removeFromCart, clearCart in your button handlers
+  // Cart icon click event to open popup
+  document.getElementById('cart-icon')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('cart-popup')?.classList.remove('hidden');
+  });
+  document.getElementById('close-cart-popup')?.addEventListener('click', function() {
+    document.getElementById('cart-popup')?.classList.add('hidden');
+  });
+</script>
     </body>
   </html>

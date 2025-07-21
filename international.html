@@ -42,11 +42,10 @@
 </nav>
 
 <!-- Cart Icon (floating) -->
-<!-- <a id="cart-icon" href="#" -->
-  <!-- class="absolute right-4 top-[72px] bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition z-40 flex items-center shadow-lg"> -->
-  <!-- <i class="fa fa-shopping-cart mr-2"></i> -->
-  <!-- <span id="cart-count" class="font-bold">0</span> -->
-<!-- </a> -->
+<a id="cart-icon" href="#" class="fixed top-[90px] right-6 z-40 flex items-center bg-white shadow-lg rounded-full px-4 py-2 hover:bg-orange-100 transition">
+  <i class="fa fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
+  <span id="cart-count" class="font-bold text-orange-600">0</span>
+</a>
 
 
 <div class="pt-16">
@@ -118,7 +117,7 @@
 <script type="module" src="cart-utils.js"></script>
 <script type="module">
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { loadCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
+import { initCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
 
 const loginForm = document.getElementById("login-form");
 const loginModal = document.getElementById("login-modal");
@@ -401,43 +400,11 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
       // Helper to get cart from localStorage
       // Ensure cart items have valid properties
       
-      function getCart() {
-        const cart = localStorage.getItem('snack_cart');
-        let parsed = [];
-        try {
-          parsed = cart ? JSON.parse(cart) : [];
-          // Ensure all items have valid properties
-          parsed = parsed.map(item => ({
-            id: typeof item.id === 'undefined' ? 0 : parseInt(item.id, 10),
-            name: item.name || 'Unknown',
-            price: isNaN(parseInt(item.price, 10)) ? 0 : parseInt(item.price, 10),
-            image: item.image || '',
-            quantity: isNaN(parseInt(item.quantity, 10)) || item.quantity < 1 ? 1 : parseInt(item.quantity, 10)
-          }));
-        } catch (e) {
-          parsed = [];
-        }
-        return parsed;
-      } 
-      function addToCart(id, name, price, image) {
-        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
-        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
-        name = name || 'Unknown';
-        image = image || '';
-        let cart = getCart();
-        const existing = cart.find(item => parseInt(item.id, 10) === id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({ id, name, price, image, quantity: 1 });
-        }
-        saveCart(cart);
-        showToast(`${name} (KSh ${price}) added to cart!`);
-      }
+      // [REMOVE all code from: function getCart() { ... } to the end of the main cart logic block, including all local cart functions and event listeners.]
   
       // Helper to update cart popup contents without closing/reopening
       function updateCartPopup() {
-        const cart = getCart();
+        const cart = loadCart();
         const cartItemsElem = document.getElementById('cart-items');
         if (!cartItemsElem) return;
         cartItemsElem.innerHTML = cart.length === 0
@@ -465,19 +432,13 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
         }
       }
   
-      function saveCart(cart) {
-        localStorage.setItem('snack_cart', JSON.stringify(cart));
-        // Always update sessionStorage for checkout page access
-        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
-        document.dispatchEvent(new Event('cart-updated'));
-      }
   
       function addToCart(id, name, price, image) {
         id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
         price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
         name = name || 'Unknown';
         image = image || '';
-        let cart = getCart();
+        let cart = loadCart();
         const existing = cart.find(item => parseInt(item.id, 10) === id);
         if (existing) {
           existing.quantity += 1;
@@ -565,37 +526,37 @@ if (checkoutBtn) {
   });
 }
 
-  
-        const cartItemsElem = popup.querySelector('#cart-items');
-        if (cartItemsElem) {
-          cartItemsElem.addEventListener('click', function(e) {
-            const id = parseInt(e.target.getAttribute('data-id'), 10);
-            let cart = loadCart();
-            if (e.target.classList.contains('increase-qty')) {
-              const item = cart.find(i => i.id === id);
-              if (item) item.quantity += 1;
-              saveCart(cart);
-              showCartPopup();
-            }
-            if (e.target.classList.contains('decrease-qty')) {
-              const item = cart.find(i => i.id === id);
-              if (item && item.quantity > 1) {
+  // Quantity and remove handlers
+  const cartItemsElem = popup.querySelector('#cart-items');
+  if (cartItemsElem) {
+    cartItemsElem.addEventListener('click', function(e) {
+      const id = e.target.getAttribute('data-id');
+      let cart = loadCart();
+      if (e.target.classList.contains('increase-qty')) {
+        const item = cart.find(i => String(i.id) === String(id));
+        if (item) item.quantity += 1;
+        saveCart(cart);
+        showCartPopup();
+      }
+      if (e.target.classList.contains('decrease-qty')) {
+        const item = cart.find(i => String(i.id) === String(id));
+        if (item && item.quantity > 1) {
           item.quantity -= 1;
-            saveCart(cart);
-          showCartPopup();
-              } else if (item && item.quantity === 1) {
-          cart = cart.filter(i => i.id !== id);
           saveCart(cart);
           showCartPopup();
-              }
-            }
-            if (e.target.classList.contains('remove-item')) {
-              cart = cart.filter(i => i.id !== id);
-              saveCart(cart);
-              showCartPopup();
-            }
-          });
+        } else if (item && item.quantity === 1) {
+          cart = cart.filter(i => String(i.id) !== String(id));
+          saveCart(cart);
+          showCartPopup();
         }
+      }
+      if (e.target.classList.contains('remove-item')) {
+        cart = cart.filter(i => String(i.id) !== String(id));
+        saveCart(cart);
+        showCartPopup();
+      }
+    });
+  }
 
         // Add Login/Register Nav
         function renderAuthNav() {
@@ -653,24 +614,12 @@ if (checkoutBtn) {
       });
   
         function updateCartCount() {
+          const cart = loadCart();
           const cartCountElem = document.getElementById('cart-count');
           if (cartCountElem) {
-            cartCountElem.textContent = loadCart().reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElem.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
           }
         }
-
-        snackGrid.addEventListener("click", function (e) {
-          if (e.target.classList.contains("add-to-cart")) {
-            const btn = e.target;
-            addToCart(
-              btn.getAttribute("data-id"),
-              btn.getAttribute("data-name"),
-              btn.getAttribute("data-price"),
-              btn.getAttribute("data-image")
-            );
-            renderCartIcon();
-          }
-        });
       });
   document.getElementById("close-login-modal")?.addEventListener("click", () => {
     document.getElementById("login-modal")?.classList.add("hidden");
@@ -713,5 +662,36 @@ if (checkoutBtn) {
     <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
   </a>
 </nav>
+<!-- Cart Popup (desktop & mobile, unified) -->
+<div id="cart-popup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg relative shadow-2xl max-h-[80vh] overflow-y-auto">
+    <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl">&times;</button>
+    <h3 class="text-2xl font-bold mb-4">Your Cart</h3>
+    <div class="cart-items space-y-4"></div>
+    <div class="mt-6 border-t pt-4 flex justify-between items-center">
+      <span class="text-lg font-semibold">Total: <span class="cart-total">KSh 0</span></span>
+      <div class="flex gap-2">
+        <button id="checkout-btn-popup" class="bg-green-600 text-white px-4 py-2 rounded">Checkout</button>
+        <button onclick="clearCart()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear All</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+  import { initCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
+  initCart();
+  // Attach add-to-cart event handler to snackGrid
+  document.getElementById('snack-grid')?.addEventListener('click', function(e) {
+    if (e.target.classList.contains('add-to-cart')) {
+      const btn = e.target;
+      addToCart(
+        btn.getAttribute('data-id'),
+        btn.getAttribute('data-name'),
+        btn.getAttribute('data-price'),
+        btn.getAttribute('data-image')
+      );
+    }
+  });
+</script>
     </body>
   </html>

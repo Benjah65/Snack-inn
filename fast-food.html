@@ -42,11 +42,10 @@
 </nav>
 
 <!-- Cart Icon (floating) -->
-<!-- <a id="cart-icon" href="#" -->
-  <!-- class="absolute right-4 top-[72px] bg-orange-500 text-white px-3 py-2 rounded-full hover:bg-orange-600 transition z-40 flex items-center shadow-lg"> -->
-  <!-- <i class="fa fa-shopping-cart mr-2"></i> -->
-  <!-- <span id="cart-count" class="font-bold">0</span> -->
-<!-- </a> -->
+<a id="cart-icon" href="#" class="fixed top-[90px] right-6 z-40 flex items-center bg-white shadow-lg rounded-full px-4 py-2 hover:bg-orange-100 transition">
+  <i class="fa fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
+  <span id="cart-count" class="font-bold text-orange-600">0</span>
+</a>
 
 
 <div class="pt-16">
@@ -118,7 +117,7 @@
 <script type="module" src="cart-utils.js"></script>
 <script type="module">
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { loadCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
+import { loadCart, addToCart, removeFromCart, clearCart, saveCart, migrateGuestCartToUserCart } from './cart-utils.js';
 
 const loginForm = document.getElementById("login-form");
 const loginModal = document.getElementById("login-modal");
@@ -146,6 +145,8 @@ if (loginForm) {
 
     try {
       await signInWithEmailAndPassword(window.auth, email, password);
+      // Migrate guest cart to user cart on login
+      migrateGuestCartToUserCart();
       loginModal.classList.add("hidden");
 
      // 🔥 Close cart popup if it's open
@@ -153,6 +154,8 @@ if (loginForm) {
       if (cartPopup) cartPopup.remove();
 
       if (window.showUserStatus) showUserStatus();
+      // Update cart count after login
+      updateCartCount();
     } catch (err) {
       if (errorBox) {
         errorBox.textContent = "❌ " + err.message;
@@ -189,6 +192,7 @@ function showUserStatus() {
       document.getElementById("logout-btn")?.addEventListener("click", async () => {
         await signOut(window.auth);
         location.reload();
+        updateCartCount();
       });
 
     } else {
@@ -204,6 +208,8 @@ function showUserStatus() {
       document.getElementById("open-register-from-status")?.addEventListener("click", () => {
         document.getElementById("register-modal")?.classList.remove("hidden");
       });
+      // Update cart count after logout
+      updateCartCount();
     }
   });
 }
@@ -388,116 +394,23 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
           </div>
         </div>
       `).join('');
-  
-      // ✅ Dummy Add to Cart (replace with your logic)
-      // Save cart to localStorage and redirect to checkout/index as needed
-      // Helper to get cart from localStorage
-      // Ensure cart items have valid properties
-      
-      function getCart() {
-        const cart = localStorage.getItem('snack_cart');
-        let parsed = [];
-        try {
-          parsed = cart ? JSON.parse(cart) : [];
-          // Ensure all items have valid properties
-          parsed = parsed.map(item => ({
-            id: typeof item.id === 'undefined' ? 0 : parseInt(item.id, 10),
-            name: item.name || 'Unknown',
-            price: isNaN(parseInt(item.price, 10)) ? 0 : parseInt(item.price, 10),
-            image: item.image || '',
-            quantity: isNaN(parseInt(item.quantity, 10)) || item.quantity < 1 ? 1 : parseInt(item.quantity, 10)
-          }));
-        } catch (e) {
-          parsed = [];
-        }
-        return parsed;
-      } 
-      function addToCart(id, name, price, image) {
-        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
-        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
-        name = name || 'Unknown';
-        image = image || '';
-        let cart = getCart();
-        const existing = cart.find(item => parseInt(item.id, 10) === id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({ id, name, price, image, quantity: 1 });
-        }
-        saveCart(cart);
-        showToast(`${name} (KSh ${price}) added to cart!`);
+
+    // --- Cart Icon & Popup Logic ---
+    function updateCartCount() {
+      const cart = loadCart();
+      const cartCountElem = document.getElementById('cart-count');
+      if (cartCountElem) {
+        cartCountElem.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
       }
-  
-      // Helper to update cart popup contents without closing/reopening
-      function updateCartPopup() {
-        const cart = loadCart();
-        const cartItemsElem = document.getElementById('cart-items');
-        if (!cartItemsElem) return;
-        cartItemsElem.innerHTML = cart.length === 0
-        ? '<p class="text-gray-500 text-center">Your cart is empty.</p>'
-        : cart.map(item => `
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center">
-            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded mr-3 border" onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=No+Image';">
-            <div>
-          <div class="font-semibold">${item.name}</div>
-        </div>
-        </div>
-        <div class="flex items-center">
-            <button class="decrease-qty text-orange-500 px-2" data-id="${item.id}">-</button>
-            <span class="mx-1">${item.quantity}</span>
-            <button class="increase-qty text-orange-500 px-2" data-id="${item.id}">+</button>
-            <button class="remove-item ml-3 text-red-500" data-id="${item.id}"><i class="fa fa-trash"></i></button>
-            </div>
-          </div>
-          `).join('');
-        // Update total
-        const totalElem = cartItemsElem.parentElement.querySelector('.font-bold.text-orange-600');
-        if (totalElem) {
-          totalElem.textContent = `KSh ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}`;
-        }
-      }
-  
-      function saveCart(cart) {
-        localStorage.setItem('snack_cart', JSON.stringify(cart));
-        // Always update sessionStorage for checkout page access
-        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
-        document.dispatchEvent(new Event('cart-updated'));
-      }
-  
-      function addToCart(id, name, price, image) {
-        id = isNaN(parseInt(id, 10)) ? 0 : parseInt(id, 10);
-        price = isNaN(parseInt(price, 10)) ? 0 : parseInt(price, 10);
-        name = name || 'Unknown';
-        image = image || '';
-        let cart = getCart();
-        const existing = cart.find(item => parseInt(item.id, 10) === id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({ id, name, price, image, quantity: 1 });
-        }
-        saveCart(cart);
-        showToast(`${name} (KSh ${price}) added to cart!`);
-      }
-  
-      function showToast(message) {
-        const toast = document.createElement('div');
-        toast.textContent = message;
-        toast.className = "fixed bottom-8 right-8 bg-orange-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-bounce";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-      }
-  
-      function showCartPopup() {
-        let popup = document.getElementById('cart-popup');
-        if (popup) popup.remove();
-  
-        const cart = loadCart();
-        popup = document.createElement('div');
-        popup.id = 'cart-popup';
-        popup.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
-        popup.innerHTML = `
+    }
+    function showCartPopup() {
+      let popup = document.getElementById('cart-popup');
+      if (popup) popup.remove();
+      const cart = loadCart();
+      popup = document.createElement('div');
+      popup.id = 'cart-popup';
+      popup.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
+      popup.innerHTML = `
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
           <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-400 hover:text-orange-500 text-2xl">&times;</button>
           <h2 class="text-2xl font-bold mb-4 text-orange-500 flex items-center"><i class="fa fa-shopping-cart mr-2"></i>Cart</h2>
@@ -523,148 +436,86 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
             <button id="checkout-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full">Checkout</button>
           </div>
         </div>
-        `;
-        document.body.appendChild(popup);
-        const closeBtn = popup.querySelector('#close-cart-popup');
-        if (closeBtn) closeBtn.onclick = function() { 
-          if (popup && popup.parentNode) popup.parentNode.removeChild(popup); 
-        };
-
-        // Add event listener for checkout button
-        const checkoutBtn = popup.querySelector('#checkout-btn');
-if (checkoutBtn) {
-  checkoutBtn.addEventListener('click', function() {
-    // Use Firebase Auth to check login before redirecting
-    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      const cart = loadCart();
-
-      if (user && user.uid) {
-        localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
-        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
-        window.location.href = 'checkout.html';
-      } else {
-        const loginModal = document.getElementById("login-modal");
-        if (loginModal) {
-          loginModal.classList.remove("hidden");
-        }
-
-        // ✅ Close cart popup if it's open
-        const cartPopup = document.getElementById("cart-popup");
-        if (cartPopup) cartPopup.remove();
-      }
-    });
-  });
-}
-
-  
-        const cartItemsElem = popup.querySelector('#cart-items');
-        if (cartItemsElem) {
-          cartItemsElem.addEventListener('click', function(e) {
-            const id = parseInt(e.target.getAttribute('data-id'), 10);
-            let cart = loadCart();
-            if (e.target.classList.contains('increase-qty')) {
-              const item = cart.find(i => i.id === id);
-              if (item) item.quantity += 1;
-              saveCart(cart);
-              showCartPopup();
-            }
-            if (e.target.classList.contains('decrease-qty')) {
-              const item = cart.find(i => i.id === id);
-              if (item && item.quantity > 1) {
-          item.quantity -= 1;
-            saveCart(cart);
-          showCartPopup();
-              } else if (item && item.quantity === 1) {
-          cart = cart.filter(i => i.id !== id);
-          saveCart(cart);
-          showCartPopup();
+      `;
+      document.body.appendChild(popup);
+      const closeBtn = popup.querySelector('#close-cart-popup');
+      if (closeBtn) closeBtn.onclick = function() { if (popup && popup.parentNode) popup.parentNode.removeChild(popup); };
+      // Add event listener for checkout button
+      const checkoutBtn = popup.querySelector('#checkout-btn');
+      if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+          import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
+            const auth = getAuth();
+            const user = auth.currentUser;
+            const cart = loadCart();
+            if (user && user.uid) {
+              localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
+              sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+              window.location.href = 'checkout.html';
+            } else {
+              const loginModal = document.getElementById("login-modal");
+              if (loginModal) {
+                loginModal.classList.remove("hidden");
               }
-            }
-            if (e.target.classList.contains('remove-item')) {
-              cart = cart.filter(i => i.id !== id);
-              saveCart(cart);
-              showCartPopup();
+              if (popup) popup.remove();
             }
           });
-        }
-
-        // Add Login/Register Nav
-        function renderAuthNav() {
-  const existingNav = document.getElementById('auth-nav');
-  if (existingNav) existingNav.remove();
-
-  
-
-  const user = window.auth?.currentUser;
-
-  if (user) {
-    // 👤 If logged in
-    
-  } else {
-    // 🚪 If not logged in
-    
-  }
-
-  document.body.appendChild(nav);
-}
-
-        renderAuthNav();
-      }
-  
-      function renderCartIcon() {
-        const existingIcon = document.querySelector('a#cart-icon');
-        if (existingIcon) existingIcon.remove();
-        const cartCount = loadCart().reduce((sum, item) => sum + item.quantity, 0);
-        const cartIcon = document.createElement('a');
-        cartIcon.id = "cart-icon";
-        cartIcon.href = "#";
-        cartIcon.className = "fixed top-[90px] right-6 z-40 flex items-center bg-white shadow-lg rounded-full px-4 py-2 hover:bg-orange-100 transition";
-        cartIcon.innerHTML = `
-        <i class="fa fa-shopping-cart text-orange-500 text-2xl mr-2"></i>
-        <span id="cart-count" class="font-bold text-orange-600">${cartCount}</span>
-        `;
-        cartIcon.addEventListener('click', function(e) {
-          e.preventDefault();
-          showCartPopup();
         });
-        document.body.appendChild(cartIcon);
       }
-  
-      renderCartIcon();
-  
-      document.addEventListener('cart-updated', () => {
+      // Quantity and remove handlers
+      const cartItemsElem = popup.querySelector('#cart-items');
+      if (cartItemsElem) {
+        cartItemsElem.addEventListener('click', function(e) {
+          const id = e.target.getAttribute('data-id');
+          let cart = loadCart();
+          if (e.target.classList.contains('increase-qty')) {
+            const item = cart.find(i => String(i.id) === String(id));
+            if (item) item.quantity += 1;
+            saveCart(cart);
+            showCartPopup();
+          }
+          if (e.target.classList.contains('decrease-qty')) {
+            const item = cart.find(i => String(i.id) === String(id));
+            if (item && item.quantity > 1) {
+              item.quantity -= 1;
+              saveCart(cart);
+              showCartPopup();
+            } else if (item && item.quantity === 1) {
+              cart = cart.filter(i => String(i.id) !== String(id));
+              saveCart(cart);
+              showCartPopup();
+            }
+          }
+          if (e.target.classList.contains('remove-item')) {
+            cart = cart.filter(i => String(i.id) !== String(id));
+            saveCart(cart);
+            showCartPopup();
+          }
+        });
+      }
+    }
+    document.getElementById('cart-icon').addEventListener('click', function(e) {
+      e.preventDefault();
+      showCartPopup();
+    });
+    // Listen for both cartUpdated and storage events for real-time sync
+    window.addEventListener('cartUpdated', updateCartCount);
+    window.addEventListener('storage', function(e) {
+      if (e.key && e.key.startsWith('snack_cart')) {
         updateCartCount();
-        const existingPopup = document.getElementById('cart-popup');
-        if (existingPopup) {
-            existingPopup.remove();
-            // Save cart to sessionStorage before redirecting to checkout
-            sessionStorage.setItem('checkout_cart', JSON.stringify(loadCart()));
-          showCartPopup();
-        }
-      });
-  
-        function updateCartCount() {
-          const cartCountElem = document.getElementById('cart-count');
-          if (cartCountElem) {
-            cartCountElem.textContent = loadCart().reduce((sum, item) => sum + item.quantity, 0);
-          }
-        }
-
-        snackGrid.addEventListener("click", function (e) {
-          if (e.target.classList.contains("add-to-cart")) {
-            const btn = e.target;
-            addToCart(
-              btn.getAttribute("data-id"),
-              btn.getAttribute("data-name"),
-              btn.getAttribute("data-price"),
-              btn.getAttribute("data-image")
-            );
-            renderCartIcon();
-          }
-        });
-      });
+      }
+    });
+    document.addEventListener('DOMContentLoaded', updateCartCount);
+   
+    // Toast notification function
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.className = "fixed bottom-8 right-8 bg-orange-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-bounce";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+  });
   document.getElementById("close-login-modal")?.addEventListener("click", () => {
     document.getElementById("login-modal")?.classList.add("hidden");
   });
@@ -706,5 +557,21 @@ if (checkoutBtn) {
     <span class="text-xs mt-1 group-[.active]:text-orange-500 font-chewy">Profile</span>
   </a>
 </nav>
+<script type="module">
+  import { initCart, addToCart, removeFromCart, clearCart } from './cart-utils.js';
+  initCart();
+  // Attach add-to-cart event handler to snackGrid (if present)
+  document.getElementById('snack-grid')?.addEventListener('click', function(e) {
+    if (e.target.classList.contains('add-to-cart')) {
+      const btn = e.target;
+      addToCart(
+        btn.getAttribute('data-id'),
+        btn.getAttribute('data-name'),
+        btn.getAttribute('data-price'),
+        btn.getAttribute('data-image')
+      );
+    }
+  });
+</script>
     </body>
   </html>

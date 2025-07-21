@@ -128,20 +128,20 @@
     </div>
   </div>
 </nav>
-<!-- Cart Popup (should be outside the desktop menu div) -->
+<!-- Cart Popup (desktop & mobile, unified) -->
 <div id="cart-popup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl p-6 w-full max-w-lg relative shadow-2xl max-h-[80vh] overflow-y-auto">
-        <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl">&times;</button>
-        <h3 class="text-2xl font-bold mb-4">Your Cart</h3>
-        <div id="cart-items-popup" class="space-y-4"></div>
-        <div class="mt-6 border-t pt-4 flex justify-between items-center">
-            <span class="text-lg font-semibold">Total: <span id="cart-total-popup">KSh 0</span></span>
-            <div class="flex gap-2">
-                <button id="checkout-btn-popup" class="bg-green-600 text-white px-4 py-2 rounded">Checkout</button>
-                <button onclick="clearCart()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear All</button>
-            </div>
-        </div>
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg relative shadow-2xl max-h-[80vh] overflow-y-auto">
+    <button id="close-cart-popup" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl">&times;</button>
+    <h3 class="text-2xl font-bold mb-4">Your Cart</h3>
+    <div class="cart-items space-y-4"></div>
+    <div class="mt-6 border-t pt-4 flex justify-between items-center">
+      <span class="text-lg font-semibold">Total: <span class="cart-total">KSh 0</span></span>
+      <div class="flex gap-2">
+        <button id="checkout-btn-popup" class="bg-green-600 text-white px-4 py-2 rounded">Checkout</button>
+        <button onclick="clearCart()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear All</button>
+      </div>
     </div>
+  </div>
 </div>
 <!-- ✅ Enhanced Mobile Menu (only one version now) -->
 <div id="enhanced-mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden transition-opacity duration-300 ease-in-out">
@@ -314,7 +314,7 @@
                 <!-- Product 1 -->
                 <div class="snack-card bg-white rounded-xl overflow-hidden shadow-md transition duration-300">
                     <div class="relative">
-                        <img src="/images/Follow @mrskyasiasmith!.jpg" alt="Nyama Choma" class="w-full h-48 object-cover">
+                        <img src="/images/nyama-choma.jpg" alt="Nyama Choma" class="w-full h-48 object-cover">
                         <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">BESTSELLER</div>
                     </div>
                     <div class="p-4">
@@ -1119,7 +1119,7 @@
                 </button>
             </div>
             
-            <div id="cart-items-sidebar" class="space-y-4 mb-6">
+            <div id="cart-items" class="space-y-4 mb-6">
                 <!-- Cart items will be added here dynamically -->
                 <div class="text-center py-8 text-gray-500" id="empty-cart-message">
                     <i class="fas fa-shopping-cart text-4xl mb-2"></i>
@@ -1142,7 +1142,7 @@
                 </div>
                 <div class="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mb-6">
                     <span>Total</span>
-                    <span id="cart-total-sidebar">KSh 0</span>
+                    <span id="cart-total">KSh 0</span>
                 </div>
                 
                 <button id="checkout-btn-sidebar" class="w-full bg-orange-500 text-white py-3 rounded-full font-semibold hover:bg-orange-600 transition mb-4">Proceed to Checkout</button>
@@ -1320,14 +1320,7 @@
 
     
 
-  // Dummy snackLogout if not defined elsewhere
-  function snackLogout() {
-    return Promise.resolve();
-  }
-
-  function logoutUser() {
-    snackLogout().then(() => showUserStatus());
-  }
+  // Remove duplicate snackLogout and logoutUser definitions to prevent conflicts.
 
   function showUserStatus() {
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth, onAuthStateChanged }) => {
@@ -1439,14 +1432,12 @@ document.getElementById("mobile-register-btn-auth")?.addEventListener("click", (
   if (loginBtn) loginBtn.addEventListener("click", openAuthModal); 
   const registerBtn = document.getElementById("register-btn");
   if (registerBtn) registerBtn.addEventListener("click", openRegisterModal);
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) logoutBtn.addEventListener("click", logoutUser);
+  
   const mobileLoginBtn = document.getElementById("mobile-login-btn");
   if (mobileLoginBtn) mobileLoginBtn.addEventListener("click", openAuthModal);
   const mobileRegisterBtn = document.getElementById("mobile-register-btn");
   if (mobileRegisterBtn) mobileRegisterBtn.addEventListener("click", openRegisterModal);
-  const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
-  if (mobileLogoutBtn) mobileLogoutBtn.addEventListener("click", logoutUser);
+ 
   const guestLoginBtn = document.getElementById("guest-login");
   if (guestLoginBtn) guestLoginBtn.addEventListener("click", () => {
     closeAuthModal();
@@ -1486,8 +1477,7 @@ document.getElementById("mobile-register-btn-auth")?.addEventListener("click", (
   if (mobileLoginBtnAuth) mobileLoginBtnAuth.addEventListener("click", openAuthModal);
   const mobileRegisterBtnAuth = document.getElementById("mobile-register-btn-auth");
   if (mobileRegisterBtnAuth) mobileRegisterBtnAuth.addEventListener("click", openRegisterModal);
-  const mobileLogoutBtnAuth = document.getElementById("mobile-logout-btn-auth");
-  if (mobileLogoutBtnAuth) mobileLogoutBtnAuth.addEventListener("click", logoutUser);
+  
   // ✅ Guest Login Button
   const guestLoginBtnAuth = document.getElementById("guest-login");
   if (guestLoginBtnAuth) guestLoginBtnAuth.addEventListener("click", () => {
@@ -1517,73 +1507,9 @@ document.getElementById("mobile-register-btn-auth")?.addEventListener("click", (
   }
   // ✅ Mobile Logout Button
   
-  // ✅ Mobile Cart Button
-  const mobileCartBtn = document.getElementById("mobile-cart-btn");
-  if (mobileCartBtn) {
-    mobileCartBtn.addEventListener("click", () => {
-      const cartSidebar = document.getElementById("cart-sidebar");
-      const cartOverlay = document.getElementById("cart-overlay");
-      if (cartSidebar && cartOverlay) {
-        cartSidebar.classList.toggle("hidden");
-        cartOverlay.classList.toggle("hidden");
-        if (!cartSidebar.classList.contains("hidden")) {
-          renderCart(); // Ensure cart is rendered when opened
-        }
-      }
-    });
-  }
-  // ✅ Mobile Cart Close Button
-  const closeCartSidebarBtn = document.getElementById("close-cart-sidebar");
-  if (closeCartSidebarBtn) {
-    closeCartSidebarBtn.addEventListener("click", () => {
-      const cartSidebar = document.getElementById("cart-sidebar");
-      const cartOverlay = document.getElementById("cart-overlay");
-      if (cartSidebar && cartOverlay) {
-        cartSidebar.classList.add("hidden");
-        cartOverlay.classList.add("hidden");
-      }
-    });
-  }
-  // ✅ Mobile Cart Overlay Click
-  const cartOverlay = document.getElementById("cart-overlay"); 
-  if (cartOverlay) {
-    cartOverlay.addEventListener("click", () => {
-      const cartSidebar = document.getElementById("cart-sidebar");
-      if (cartSidebar) {
-        cartSidebar.classList.add("hidden");
-        cartOverlay.classList.add("hidden");
-      }
-    });
-  } 
-  // ✅ Mobile Cart Count
-  const mobileCartCount = document.getElementById("mobile-cart-count");
-  if (mobileCartCount) {
-    mobileCartCount.addEventListener("click", () => {
-      const cartSidebar = document.getElementById("cart-sidebar");
-      const cartOverlay = document.getElementById("cart-overlay");
-      if (cartSidebar && cartOverlay) {
-        cartSidebar.classList.toggle("hidden");
-        cartOverlay.classList.toggle("hidden");
-        if (!cartSidebar.classList.contains("hidden")) {
-          renderCart(); // Ensure cart is rendered when opened
-        }
-      }
-    });
-  }
-  // ✅ Mobile Cart Count Update
-  function updateMobileCartCount(cart = loadCart()) {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const countEl = document.getElementById("mobile-cart-count");
-    if (countEl) countEl.textContent = totalItems > 0 ? totalItems : "";
-  }
-  // ✅ Mobile Cart Count on Load
-  document.addEventListener("DOMContentLoaded", () => {
-    updateMobileCartCount(); // Ensure mobile cart count is updated on page load
-  });
-  // ✅ Mobile Cart Count on Cart Update
-  window.addEventListener("cartUpdated", () => {
-    updateMobileCartCount(); // Update mobile cart count when cart is updated
-  });
+ 
+  
+  
   // ✅ Modal Open Buttons
   const loginBtnAuth = document.getElementById("login-btn-auth");
   if (loginBtnAuth) loginBtnAuth.addEventListener("click", openAuthModal);
@@ -1599,265 +1525,16 @@ document.getElementById("mobile-register-btn-auth")?.addEventListener("click", (
 
   // 🔥 Init on load
   // (Removed duplicate DOMContentLoaded event listener to avoid double event registration)
-  showUserStatus();
-  if (typeof renderCart === "function") renderCart(); // Ensure cart UI is in sync on page load
-
-  // CART 🔥
-  const CART_KEY = "snack_cart";
-
-  function loadCart() {
-    try {
-      const cart = JSON.parse(localStorage.getItem(CART_KEY));
-      return Array.isArray(cart) ? cart : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateCartCount(cart);
-    // renderCart(); // Always update cart UI after saving (removed duplicate call)
-  }
-
-  function updateCartCount(cart = loadCart()) {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const countEl = document.getElementById("cart-count");
-    if (countEl) countEl.textContent = totalItems;
-    // Update mobile cart count as well
-    const mobileCartCount = document.getElementById("mobile-cart-count");
-    if (mobileCartCount) mobileCartCount.textContent = totalItems;
-  }
-
   
-
-  function addToCart(id, name, price, image) {
-  const cart = loadCart();
-  const idStr = String(id);
-  const existing = cart.find(item => String(item.id) === idStr);
-
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    cart.push({ id: idStr, name, price, image, quantity: 1 });
-  }
-
-  saveCart(cart);
-  renderCart();
-  showToast(`${name} (KSh ${price}) added to cart!`);
-}
-
-function showToast(message) {
-  const toast = document.createElement('div');
-  toast.textContent = message;
-  toast.className = "fixed bottom-8 right-8 bg-orange-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-bounce";
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2000);
-}
-
-
-  function removeFromCart(id) {
-    const idStr = String(id);
-    let cart = loadCart();
-    cart = cart.filter(item => String(item.id) !== idStr);
-    saveCart(cart);
-    renderCart();
-  }
-
-  function clearCart() {
-    localStorage.removeItem(CART_KEY);
-    updateCartCount();
-    renderCart();
-  }
-
-  // Expose cart functions globally for inline onclick handlers
-  window.removeFromCart = removeFromCart;
-  window.clearCart = clearCart;
-
-  // Render cart for popup and sidebar
-  function renderCart() {
-    const cart = loadCart();
-
-    // Render for popup
-    const cartItemsPopup = document.getElementById("cart-items-popup");
-    const cartTotalPopup = document.getElementById("cart-total-popup");
-    if (cartItemsPopup && cartTotalPopup) {
-      cartItemsPopup.innerHTML = "";
-      let total = 0;
-      cart.forEach(item => {
-        total += item.price * item.quantity;
-        const div = document.createElement("div");
-        div.className = "flex gap-4 items-center border-b pb-4";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded" />
-          <div class="flex-1">
-            <h4 class="font-semibold">${item.name}</h4>
-            <p class="text-sm text-gray-500">KSh ${item.price} × ${item.quantity}</p>
-          </div>
-          <div class="flex flex-col items-end">
-            <span class="font-bold text-orange-500">KSh ${item.price * item.quantity}</span>
-            <button onclick="removeFromCart('${item.id}')" class="text-xs text-red-500 hover:underline mt-1">Remove</button>
-          </div>
-        `;
-        cartItemsPopup.appendChild(div);
-      });
-      cartTotalPopup.textContent = `KSh ${total}`;
-    }
-
-    // Render for sidebar
-    const cartItemsSidebar = document.getElementById("cart-items-sidebar");
-    const cartTotalSidebar = document.getElementById("cart-total-sidebar");
-    const cartSubtotal = document.getElementById("cart-subtotal");
-    const cartDelivery = document.getElementById("cart-delivery");
-    const cartTax = document.getElementById("cart-tax");
-    if (cartItemsSidebar && cartTotalSidebar && cartSubtotal && cartDelivery && cartTax) {
-      cartItemsSidebar.innerHTML = "";
-      let subtotal = 0;
-      cart.forEach(item => {
-        subtotal += item.price * item.quantity;
-        const div = document.createElement("div");
-        div.className = "flex gap-4 items-center border-b pb-4";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded" />
-          <div class="flex-1">
-            <h4 class="font-semibold">${item.name}</h4>
-            <p class="text-sm text-gray-500">KSh ${item.price} × ${item.quantity}</p>
-          </div>
-          <div class="flex flex-col items-end">
-            <span class="font-bold text-orange-500">KSh ${item.price * item.quantity}</span>
-            <button onclick="removeFromCart('${item.id}')" class="text-xs text-red-500 hover:underline mt-1">Remove</button>
-          </div>
-        `;
-        cartItemsSidebar.appendChild(div);
-      });
-      // Calculate delivery and tax (example: delivery 200 if subtotal > 0, tax 16%)
-      let delivery = subtotal > 0 ? 200 : 0;
-      let tax = Math.round(subtotal * 0.16);
-      let total = subtotal + delivery + tax;
-      cartSubtotal.textContent = `KSh ${subtotal}`;
-      cartDelivery.textContent = `KSh ${delivery}`;
-      cartTax.textContent = `KSh ${tax}`;
-      cartTotalSidebar.textContent = `KSh ${total}`;
-      // Show empty cart message if needed
-      const emptyMsg = document.getElementById("empty-cart-message");
-      if (emptyMsg) {
-        if (cart.length === 0) {
-          if (emptyMsg.classList) emptyMsg.classList.remove("hidden");
-        } else {
-          if (emptyMsg.classList) emptyMsg.classList.add("hidden");
-        }
-      }
-    }
-  } // <-- Properly close renderCart here
+  
 
     // Event listeners for cart and auth actions
     // Only add event listeners if elements exist
-    const addToCartButtons = document.querySelectorAll(".add-to-cart");
-    if (addToCartButtons.length > 0) {
-      addToCartButtons.forEach(btn => {
-        btn.addEventListener("click", function () {
-          const id = this.getAttribute("data-id");
-          const name = this.getAttribute("data-name");
-          const priceRaw = this.getAttribute("data-price");
-          // Support both integer and float prices
-          const price = priceRaw && priceRaw.includes('.') ? parseFloat(priceRaw) : parseInt(priceRaw, 10);
-          const image = this.getAttribute("data-image");
-          addToCart(id, name, price, image);
-        });
-      });
-    }
-    const cartBtn = document.getElementById("cart-btn");
-    if (cartBtn) cartBtn.addEventListener("click", () => {
-      renderCart();
-      // Show sidebar on desktop, popup on mobile
-      if (window.innerWidth >= 768) {
-        const sidebar = document.getElementById("cart-sidebar");
-        if (sidebar) {
-          sidebar.classList.remove("hidden");
-          setTimeout(() => {
-            sidebar.classList.remove("translate-x-full");
-          }, 10);
-        }
-        document.getElementById("cart-overlay")?.classList.remove("hidden");
-      } else {
-        const cartPopup = document.getElementById("cart-popup");
-        if (cartPopup) cartPopup.classList.remove("hidden");
-      }
-    });
-
-    // Mobile cart button opens cart popup
-    document.getElementById("mobile-cart-btn")?.addEventListener("click", () => {
-      renderCart();
-      const cartPopup = document.getElementById("cart-popup");
-      if (cartPopup) cartPopup.classList.remove("hidden");
-      // Optionally close mobile menu if open
-      const enhancedMenu = document.getElementById('enhanced-mobile-menu');
-      const enhancedMenuPanel = document.getElementById('enhanced-mobile-menu-panel');
-      if (enhancedMenu && enhancedMenuPanel && !enhancedMenu.classList.contains('hidden')) {
-        enhancedMenuPanel.classList.add('translate-x-full');
-        setTimeout(() => {
-          enhancedMenu.classList.add('hidden');
-        }, 300);
-      }
-    });
-    document.getElementById("close-cart-popup")?.addEventListener("click", () => {
-      const cartPopup = document.getElementById("cart-popup");
-      if (cartPopup) cartPopup.classList.add("hidden");
-    });
-    document.getElementById("close-cart-sidebar")?.addEventListener("click", () => {
-      const sidebar = document.getElementById("cart-sidebar");
-      if (sidebar) {
-        sidebar.classList.add("hidden");
-        sidebar.classList.add("translate-x-full");
-      }
-      const cartOverlay = document.getElementById("cart-overlay");
-      if (cartOverlay) cartOverlay.classList.add("hidden");
-    });
-    // Close login/register modals
-    // (Already handled above, so these lines are removed to prevent duplicate listeners)
+    
+   
 
     // Modal switch buttons
     
-
-    // ✅ Checkout Redirect (fixed to use Firebase Auth)
-    document.getElementById("checkout-btn-popup")?.addEventListener("click", () => {
-      const cart = loadCart();
-      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (user && user.uid) {
-          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
-          window.location.href = "checkout.html";
-        } else {
-          // Show a styled popup instead of alert
-          const loginModal = document.getElementById("login-modal");
-          if (loginModal) {
-            loginModal.classList.remove("hidden");
-          }
-        }
-      });
-    });
-
-    document.getElementById("checkout-btn-sidebar")?.addEventListener("click", () => {
-      const cart = loadCart();
-      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(({ getAuth }) => {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (user && user.uid) {
-          localStorage.setItem(`snack_cart_${user.uid}`, JSON.stringify(cart));
-          window.location.href = "checkout.html";
-        } else {
-          // Show a styled popup instead of alert
-          const loginModal = document.getElementById("login-modal");
-          if (loginModal) {
-            loginModal.classList.remove("hidden");
-          }
-        }
-      });
-    });
-
-    // 🧠 This is the fix you're asking for 👇👇👇
-    updateCartCount(); // ✅ Loads and updates the count on reload
     
     // MOBILE LOGIN/REGISTER BUTTONS
     // showUserStatus(); // Removed duplicate call
@@ -1877,19 +1554,7 @@ function showToast(message) {
         modal.classList.add("flex");
       }
     });
-    // Mobile logout button
-    document.getElementById("mobile-logout-btn")?.addEventListener("click", () => {
-      logoutUser();
-      // Optionally close the mobile menu if open
-      const enhancedMenu = document.getElementById('enhanced-mobile-menu');
-      const enhancedMenuPanel = document.getElementById('enhanced-mobile-menu-panel');
-      if (enhancedMenu && enhancedMenuPanel && !enhancedMenu.classList.contains('hidden')) {
-        enhancedMenuPanel.classList.add('translate-x-full');
-        setTimeout(() => {
-          enhancedMenu.classList.add('hidden');
-        }, 300);
-      }
-    });
+    
     // Guest login button
     document.getElementById("guest-login")?.addEventListener("click", () => {
       // Close any open modals
@@ -2408,17 +2073,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeRegister?.addEventListener('click', () => registerModal.classList.add('hidden'));
 });
 </script>
-<script>
-  if (typeof removeFromCart !== "function") {
-    function removeFromCart(id) {
-      let cart = JSON.parse(localStorage.getItem("snack_cart")) || [];
-      cart = cart.filter(item => item.id !== id);
-      localStorage.setItem("snack_cart", JSON.stringify(cart));
-      renderCart();
-    }
-    window.removeFromCart = removeFromCart;
-  }
-</script>
+
 
 <!-- Mobile Bottom Navigation (hidden on md and up) -->
 <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 shadow-xl z-50 md:hidden bg-[#EFEFD0] theme-dark:bg-[#1F2937] font-poppins">
@@ -2478,9 +2133,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
-  mobileLogoutBtn?.addEventListener("click", () => {
-    if (typeof logoutUser === "function") logoutUser();
-  });
 });
 </script>
 
@@ -2501,7 +2153,226 @@ function togglePassword(inputId, btn) {
 <script type="module" src="./functions/snackinn-firebase.js"></script>
 <script type="module">
   import { logoutUser } from './functions/snackinn-firebase.js';
-  document.getElementById('mobile-logout-btn')?.addEventListener('click', logoutUser);
+ 
 </script>
+
+<script type="module">
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth } from "./snackinn-firebase.js";
+// Show profile picture in nav if uploaded, else show welcome text
+function updateNavProfilePic() {
+  const userWelcome = document.getElementById("user-welcome");
+  const mobileUserWelcome = document.getElementById("mobile-user-welcome");
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const picUrl = localStorage.getItem(`user_profile_pic_${user.uid}`);
+      if (picUrl) {
+        if (userWelcome) {
+          userWelcome.innerHTML = `<img src="${picUrl}" alt="Profile" class="inline w-8 h-8 rounded-full object-cover border-2 border-orange-500 align-middle" style="vertical-align:middle;" />`;
+        }
+        if (mobileUserWelcome) {
+          mobileUserWelcome.innerHTML = `<img src="${picUrl}" alt="Profile" class="inline w-8 h-8 rounded-full object-cover border-2 border-orange-500 align-middle" style="vertical-align:middle;" />`;
+        }
+      } else {
+        if (userWelcome) userWelcome.textContent = `Welcome, ${user.displayName || user.email}`;
+        if (mobileUserWelcome) mobileUserWelcome.textContent = `Welcome, ${user.displayName || user.email}`;
+      }
+      if (userWelcome) userWelcome.classList.remove("hidden");
+      if (mobileUserWelcome) mobileUserWelcome.classList.remove("hidden");
+    } else {
+      if (userWelcome) userWelcome.classList.add("hidden");
+      if (mobileUserWelcome) mobileUserWelcome.classList.add("hidden");
+    }
+  });
+}
+updateNavProfilePic();
+</script>
+
+<script type="module">
+import { initCart, addToCart, removeFromCart, clearCart, loadCart } from './cart-utils.js';
+
+
+
+// Initialize the cart
+initCart({
+  cartCountSelector: '#cart-count',
+  cartPopupSelector: '#cart-popup',
+  cartSidebarSelector: '#cart-sidebar'
+});
+
+// Add to cart handler for snacks on homepage
+document.getElementById('snack-grid')?.addEventListener('click', function(e) {
+  if (e.target.classList.contains('add-to-cart')) {
+    const btn = e.target;
+    addToCart(
+      btn.getAttribute('data-id'),
+      btn.getAttribute('data-name'),
+      parseFloat(btn.getAttribute('data-price')),
+      btn.getAttribute('data-image')
+    );
+  }
+});
+
+// proceed to checkout (desktop sidebar)
+document.getElementById("checkout-btn-sidebar")?.addEventListener("click", () => {
+  window.location.href = "checkout.html";
+});
+
+// Proceed to checkout (mobile popup)
+document.getElementById("checkout-btn-popup")?.addEventListener("click", () => {
+  window.location.href = "checkout.html";
+});
+
+// Cart open/close logic (desktop and mobile)
+const cartBtn = document.getElementById("cart-btn");
+if (cartBtn) cartBtn.addEventListener("click", () => {
+  if (window.innerWidth >= 768) {
+    const sidebar = document.getElementById("cart-sidebar");
+    if (sidebar) {
+      sidebar.classList.remove("hidden");
+      setTimeout(() => {
+        sidebar.classList.remove("translate-x-full");
+      }, 10);
+    }
+    document.getElementById("cart-overlay")?.classList.remove("hidden");
+  } else {
+    const cartPopup = document.getElementById("cart-popup");
+    if (cartPopup) cartPopup.classList.remove("hidden");
+  }
+});
+const mobileCartBtn = document.getElementById("mobile-cart-btn");
+if (mobileCartBtn) {
+  mobileCartBtn.addEventListener("click", () => {
+    const cartPopup = document.getElementById("cart-popup");
+    if (cartPopup) cartPopup.classList.remove("hidden");
+    // Optionally close mobile menu if open
+    const enhancedMenu = document.getElementById('enhanced-mobile-menu');
+    const enhancedMenuPanel = document.getElementById('enhanced-mobile-menu-panel');
+    if (enhancedMenu && enhancedMenuPanel && !enhancedMenu.classList.contains('hidden')) {
+      enhancedMenuPanel.classList.add('translate-x-full');
+      setTimeout(() => {
+        enhancedMenu.classList.add('hidden');
+      }, 300);
+    }
+  });
+}
+document.getElementById("close-cart-sidebar")?.addEventListener("click", () => {
+  const sidebar = document.getElementById("cart-sidebar");
+  if (sidebar) {
+    sidebar.classList.add("hidden");
+    sidebar.classList.add("translate-x-full");
+  }
+  const cartOverlay = document.getElementById("cart-overlay");
+  if (cartOverlay) cartOverlay.classList.add("hidden");
+});
+document.getElementById("close-cart-popup")?.addEventListener("click", () => {
+  const cartPopup = document.getElementById("cart-popup");
+  if (cartPopup) cartPopup.classList.add("hidden");
+});
+const cartOverlay = document.getElementById("cart-overlay");
+if (cartOverlay) {
+  cartOverlay.addEventListener("click", () => {
+    const sidebar = document.getElementById("cart-sidebar");
+    if (sidebar) {
+      sidebar.classList.add("hidden");
+      sidebar.classList.add("translate-x-full");
+    }
+    cartOverlay.classList.add("hidden");
+    const cartPopup = document.getElementById("cart-popup");
+    if (cartPopup) cartPopup.classList.add("hidden");
+  });
+}
+
+// Update both desktop and mobile cart counts
+function updateCartCounts() {
+  const cart = loadCart();
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCountElem = document.getElementById('cart-count');
+  if (cartCountElem) cartCountElem.textContent = totalItems;
+  const mobileCartCountElem = document.getElementById('mobile-cart-count');
+  if (mobileCartCountElem) mobileCartCountElem.textContent = totalItems > 0 ? totalItems : "0";
+}
+window.addEventListener('cartUpdated', updateCartCounts);
+window.addEventListener('storage', updateCartCounts);
+document.addEventListener('DOMContentLoaded', updateCartCounts);
+
+// Add this after cart initialization
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.className = "fixed bottom-8 right-8 bg-orange-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-bounce";
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// Attach event listeners to all .add-to-cart buttons on homepage
+if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function() {
+      addToCart(
+        btn.getAttribute('data-id'),
+        btn.getAttribute('data-name'),
+        parseFloat(btn.getAttribute('data-price')),
+        btn.getAttribute('data-image')
+      );
+      showToast(`${btn.getAttribute('data-name')} (KSh ${btn.getAttribute('data-price')}) added to cart!`);
+    });
+  });
+}
+
+function attachCartItemHandlers(container) {
+  if (!container || container.dataset.listenerAttached === 'true') return;
+
+  container.addEventListener('click', function (e) {
+    const id = e.target.getAttribute('data-id');
+    let cart = loadCart();
+
+    if (e.target.classList.contains('increase-qty')) {
+      const item = cart.find(i => String(i.id) === String(id));
+      if (item) {
+        item.quantity += 1;
+        saveCart(cart);
+        renderCart();
+      }
+    }
+
+    if (e.target.classList.contains('decrease-qty')) {
+      const item = cart.find(i => String(i.id) === String(id));
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+        saveCart(cart);
+        renderCart();
+      } else if (item && item.quantity === 1) {
+        cart = cart.filter(i => String(i.id) !== String(id));
+        saveCart(cart);
+        renderCart();
+      }
+    }
+
+    if (e.target.classList.contains('remove-item')) {
+      cart = cart.filter(i => String(i.id) !== String(id));
+      saveCart(cart);
+      renderCart();
+    }
+  });
+
+  // 🛡️ Mark that it's attached
+  container.dataset.listenerAttached = 'true';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // ✅ Sidebar cart-items (desktop view)
+  const sidebarCartItems = document.querySelector('#cart-sidebar #cart-items');
+  if (sidebarCartItems) attachCartItemHandlers(sidebarCartItems);
+
+  // ✅ Popup cart-items (mobile view)
+  const popupCartItems = document.querySelector('#cart-popup #cart-items');
+  if (popupCartItems) attachCartItemHandlers(popupCartItems);
+});
+
+
+
+</script>
+
 </body>
 </html>

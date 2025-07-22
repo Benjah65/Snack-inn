@@ -153,7 +153,7 @@
           <!-- Profile Section -->
           <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
             <div class="relative w-24 h-24 flex flex-col items-center justify-center">
-              <img id="profile-pic-img" src="https://ui-avatars.com/api/?name=User" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-accent object-cover bg-accent/10" />
+              <img loading="lazy" id="profile-pic-img" src="https://ui-avatars.com/api/?name=User" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-accent object-cover bg-accent/10" />
               <label for="profile-pic-upload" class="absolute bottom-0 right-0 bg-accent text-white rounded-full p-1 cursor-pointer shadow-lg" title="Upload profile picture">
                 <i class="fas fa-camera"></i>
                 <input id="profile-pic-upload" type="file" accept="image/*" class="hidden" />
@@ -665,7 +665,7 @@
         if (user) {
           const picUrl = localStorage.getItem(`user_profile_pic_${user.uid}`);
           if (picUrl) {
-            userWelcome.innerHTML = `<img src="${picUrl}" alt="Profile" class="inline w-8 h-8 rounded-full object-cover border-2 border-orange-500 align-middle" style="vertical-align:middle;" />`;
+            userWelcome.innerHTML = `<img loading="lazy" src="${picUrl}" alt="Profile" class="inline w-8 h-8 rounded-full object-cover border-2 border-orange-500 align-middle" style="vertical-align:middle;" />`;
           } else {
             userWelcome.textContent = `Welcome, ${user.displayName || user.email}`;
           }

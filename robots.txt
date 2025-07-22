@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://snackinn.netlify.app/sitemap.xml

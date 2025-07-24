@@ -4,9 +4,9 @@
     "slug": "snackinn-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/icon.png.png",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/images/splash.png.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

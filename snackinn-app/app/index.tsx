@@ -1,20 +1,41 @@
 // app/index.tsx
 
-import React from 'react';
-import { SafeAreaView, StyleSheet, Platform, StatusBar } from 'react-native';
+import React, { useRef } from 'react';
+import { SafeAreaView, StyleSheet, Platform, StatusBar, BackHandler } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function HomeScreen() {
+  const webViewRef = useRef<WebView>(null);
+
+  // Handle back button on Android to go to previous page, not exit app
+  React.useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (webViewRef.current) {
+        webViewRef.current.goBack();
+        return true; // prevent default back (exit)
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar
+        backgroundColor="transparent"
+        translucent
+        barStyle="dark-content"
+      />
       <WebView
+        ref={webViewRef}
         source={{ uri: 'https://snackinn.netlify.app' }}
         style={styles.webview}
         originWhitelist={['*']}
         startInLoadingState
         javaScriptEnabled
         domStorageEnabled
-        scalesPageToFit
+        allowsBackForwardNavigationGestures
       />
     </SafeAreaView>
   );
@@ -23,12 +44,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    backgroundColor: '#FFD166',
   },
   webview: {
     flex: 1,
   },
 });
+
 // This file is the entry point for the app, rendering the HomeScreen component.
 // It uses a WebView to display the SnackInn website, ensuring compatibility with both iOS and Android platforms.
 // The SafeAreaView ensures that the content is rendered within the safe area boundaries of a device, especially important for devices with notches or rounded corners.

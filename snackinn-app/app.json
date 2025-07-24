@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Snack Inn",
+    "slug": "snackinn-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.snackinn.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "58f4ca3f-b86c-4710-9766-302006ccd497"
+      }
+    }
+  }
+}
